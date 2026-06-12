@@ -4,6 +4,48 @@ import './App.css';
 
 const guest = (id) => GUESTS.find(g => g.id === id);
 
+// ─── Structured rules ─────────────────────────────────────────────────────────
+// MVP: constraints bind to guests by NAME (resolved to guest IDs), not by
+// attribute. The rule row below each added constraint shows the planner exactly
+// what the system will execute.
+const RULE_LABELS = {
+  KEEP_APART:    { label: '✕ Keep apart',    cls: 'rule-apart' },
+  SEAT_TOGETHER: { label: '⊕ Seat together', cls: 'rule-together' },
+  ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone' },
+  ZONE_PREFER:   { label: '◎ Place near',    cls: 'rule-zone' },
+  CUSTOM:        { label: '✎ Custom rule',   cls: 'rule-custom' },
+};
+
+// Match typed text against guest names (word-boundary, skips honorifics).
+const matchGuestsByName = (text) => {
+  const skip = new Set(['uncle', 'aunt']);
+  return GUESTS.filter(g =>
+    g.name.split(' ').some(w =>
+      w.length > 2 && !skip.has(w.toLowerCase()) && new RegExp(`\\b${w}\\b`, 'i').test(text)
+    )
+  ).map(g => g.id);
+};
+
+function RuleRow({ rule }) {
+  const meta = RULE_LABELS[rule.type] || RULE_LABELS.CUSTOM;
+  return (
+    <div className="rule-row">
+      <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+      {rule.guests.length > 0 ? (
+        rule.guests.map(id => (
+          <span key={id} className="rule-guest">
+            <span className="rule-guest-av">{guest(id)?.name[0]}</span>
+            {guest(id)?.name.split(' ').slice(0, 2).join(' ')}
+          </span>
+        ))
+      ) : (
+        <span className="rule-nomatch">⚠ No guests matched by name — name specific guests so the rule can be applied</span>
+      )}
+      {rule.zone && <span className="rule-zone-tag">{rule.zone}</span>}
+    </div>
+  );
+}
+
 // ─── Top Nav ──────────────────────────────────────────────────────────────────
 const FLOW = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -137,7 +179,8 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const addCustom = () => {
     const text = custom.trim();
     if (!text) return;
-    setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text }]);
+    const rule = { type: 'CUSTOM', guests: matchGuestsByName(text) };
+    setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
   };
   const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
@@ -156,9 +199,13 @@ function ConstraintCapture({ onGenerate, onBack }) {
                 <div className="list-name">{g.name}</div>
                 <div className="list-sub">{g.relation}</div>
               </div>
+              {g.mobility && <span className="tag tag-mob" title="Accessibility need (from RSVP)">♿</span>}
               <span className={`pill pill-${g.meal.toLowerCase().replace(/\s/g,'')}`}>{g.meal}</span>
             </div>
           ))}
+        </div>
+        <div className="metadata-note">
+          Meal & accessibility come from RSVP data. Relationships are captured as constraints →
         </div>
       </div>
 
@@ -167,7 +214,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
         <div className="constraints-hd">
           <div>
             <h2>Add Constraints</h2>
-            <p className="sub-text">Click to add, or type your own. These drive the draft.</p>
+            <p className="sub-text">Click to add, or type your own. Each constraint resolves to a rule bound to specific guests by name.</p>
           </div>
           <button className="btn-outline" onClick={onBack}>← Back</button>
         </div>
@@ -199,16 +246,22 @@ function ConstraintCapture({ onGenerate, onBack }) {
 
         {totalCount > 0 && (
           <div className="added-block">
-            <div className="suggestions-label">Added ({totalCount})</div>
+            <div className="suggestions-label">Added ({totalCount}) — each resolves to a rule the system can execute</div>
             {HARDCODED_CONSTRAINTS.filter(c => added.includes(c.id)).map(c => (
               <div key={c.id} className="added-item">
-                <span>{c.icon} {c.text}</span>
+                <div className="added-main">
+                  <span>{c.icon} {c.text}</span>
+                  <RuleRow rule={c.rule} />
+                </div>
                 <button className="remove-btn" onClick={() => toggle(c.id)}>×</button>
               </div>
             ))}
             {customList.map(c => (
               <div key={c.id} className="added-item">
-                <span>✎ {c.text}</span>
+                <div className="added-main">
+                  <span>✎ {c.text}</span>
+                  <RuleRow rule={c.rule} />
+                </div>
                 <button className="remove-btn" onClick={() => removeCustom(c.id)}>×</button>
               </div>
             ))}
@@ -414,12 +467,22 @@ function SeatingCanvas({ onApprove, onBack }) {
               ))}
               <div className="sidebar-divider" />
               <div className="recap">
-                <div className="recap-label">Constraints applied</div>
-                {HARDCODED_CONSTRAINTS.map(c => (
-                  <div key={c.id} className="recap-row">
-                    <span>{c.icon}</span><span className="recap-text">{c.text.slice(0,60)}…</span>
-                  </div>
-                ))}
+                <div className="recap-label">Rules applied</div>
+                {HARDCODED_CONSTRAINTS.map(c => {
+                  const meta = RULE_LABELS[c.rule.type];
+                  return (
+                    <div key={c.id} className="recap-row">
+                      <span>{c.icon}</span>
+                      <div className="recap-body">
+                        <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+                        <span className="recap-text">
+                          {c.rule.guests.map(id => guest(id)?.name.split(' ')[0]).join(', ')}
+                          {c.rule.zone ? ` · ${c.rule.zone}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}

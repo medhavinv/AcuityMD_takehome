@@ -53,42 +53,51 @@ export const TABLES = [
   { id: 6, name: "Table 6 — Kids", capacity: 6, nearSpeakers: false, nearBar: false, nearService: true },
 ];
 
+// Each constraint resolves to a structured rule bound to specific guest IDs.
+// MVP scoping: rules bind to guests BY NAME (guest IDs), not by attribute/quality.
+// Meal + mobility come free from existing RSVP data; true attribute tagging is Phase 2.
 export const HARDCODED_CONSTRAINTS = [
   {
     id: "c1",
     text: "Divorced parents apart — bride's parents (Margaret & David Chen) must not be seated at the same table",
     category: "relationship",
     icon: "⚠️",
+    rule: { type: "KEEP_APART", guests: [1, 2] },
   },
   {
     id: "c2",
     text: "Don't seat Uncle Rob next to Aunt Lisa — they separated badly, keep them at least 2 tables apart",
     category: "conflict",
     icon: "🚫",
+    rule: { type: "KEEP_APART", guests: [9, 10] },
   },
   {
     id: "c3",
     text: "College friends near the bar — Sarah, Mike, Jake, and Chloe should be at Table 4",
     category: "preference",
     icon: "🍸",
+    rule: { type: "SEAT_TOGETHER", guests: [11, 12, 13, 14], zone: "Near bar" },
   },
   {
     id: "c4",
     text: "Elderly guests away from speakers — Rose and Frank are hard of hearing, seat at Table 2",
     category: "accessibility",
     icon: "♿",
+    rule: { type: "ZONE_AVOID", guests: [7, 8], zone: "Away from speakers" },
   },
   {
     id: "c5",
     text: "Vegetarian meals near service — Patricia, Sarah, and Tom need easy access to service staff",
     category: "meal",
     icon: "🥗",
+    rule: { type: "ZONE_PREFER", guests: [3, 11, 16], zone: "Near service" },
   },
   {
     id: "c6",
     text: "Kids table together — Oliver, Lily, and Noah at Table 6, away from the bar",
     category: "preference",
     icon: "🧒",
+    rule: { type: "SEAT_TOGETHER", guests: [18, 19, 20], zone: "Away from bar" },
   },
 ];
 

@@ -85,6 +85,29 @@
 .tag-bar { background:#EDE9FE; color:#6B21A8; }
 .tag-spk { background:#FEE2E2; color:#B91C1C; }
 .tag-svc { background:#E0F2FE; color:#0369A1; }
+.tag-mob { background:var(--amber-lt); color:var(--amber); }
+
+/* ── Structured rules ── */
+.rule-row { display:flex; align-items:center; flex-wrap:wrap; gap:5px; margin-top:7px; }
+.rule-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
+.rule-apart { background:var(--red-lt); color:var(--red); }
+.rule-together { background:var(--sage-light); color:var(--sage); }
+.rule-zone { background:#E0F2FE; color:#0369A1; }
+.rule-custom { background:#EDE9FE; color:#6B21A8; }
+.rule-guest {
+  display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500;
+  background:var(--white); border:1px solid var(--gray-lt); border-radius:20px;
+  padding:2px 8px 2px 3px; color:var(--charcoal);
+}
+.rule-guest-av {
+  width:16px; height:16px; border-radius:50%; background:var(--sage-light); color:var(--sage);
+  font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center;
+}
+.rule-zone-tag { font-size:10px; font-weight:600; color:var(--gray-md); border:1px dashed var(--gray-lt); border-radius:4px; padding:2px 7px; }
+.rule-nomatch { font-size:11px; color:var(--amber); line-height:1.4; }
+.added-main { flex:1; min-width:0; }
+.metadata-note { font-size:11px; color:var(--gray-md); line-height:1.5; padding-top:10px; margin-top:6px; border-top:1px solid var(--gray-lt); }
+.recap-body { flex:1; display:flex; flex-direction:column; gap:3px; align-items:flex-start; }
 
 /* ── Dashboard ── */
 .dash-hero {

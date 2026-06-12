@@ -46,9 +46,69 @@ function RuleRow({ rule }) {
   );
 }
 
-// ─── Top Nav ──────────────────────────────────────────────────────────────────
+// ─── Product Sidebar ──────────────────────────────────────────────────────────
+// The product has three existing features (Guest List, Seating Charts, To-Do).
+// This prototype adds a new feature — Seating Arrangement — that pulls data from
+// the Guest List and Seating Charts tabs. The existing tabs aren't mocked here.
+function ProductSidebar() {
+  const existing = [
+    { key: 'guests',  label: 'Guest List',    icon: '👥', sub: `${GUESTS.length} guests`,        source: true  },
+    { key: 'charts',  label: 'Seating Charts', icon: '▦',  sub: `${TABLES.length} tables`,        source: true  },
+    { key: 'todo',    label: 'To-Do Tracker',  icon: '✓',  sub: '12 open',                        source: false },
+  ];
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <span className="brand-mark">◆</span>
+        <span className="brand-name">WedSeat</span>
+      </div>
+
+      <div className="sidebar-section-label">Planning</div>
+      <nav className="sidebar-nav">
+        {existing.map(f => (
+          <div
+            key={f.key}
+            className="side-item side-disabled"
+            title={f.source ? 'Existing feature — feeds data into Seating Arrangement' : 'Existing feature — outside this prototype'}
+          >
+            <span className="side-icon">{f.icon}</span>
+            <div className="side-text">
+              <span className="side-label">{f.label}</span>
+              <span className="side-sub">{f.sub}</span>
+            </div>
+            {f.source && <span className="side-source">↓ data</span>}
+          </div>
+        ))}
+      </nav>
+
+      <div className="sidebar-section-label" style={{marginTop:18}}>New</div>
+      <nav className="sidebar-nav">
+        <div className="side-item side-active">
+          <span className="side-icon">◆</span>
+          <div className="side-text">
+            <span className="side-label">Seating Arrangement</span>
+            <span className="side-sub">AI-assisted</span>
+          </div>
+          <span className="side-new">AI</span>
+        </div>
+      </nav>
+
+      <div className="sidebar-hint">
+        Seating Arrangement is the new AI tab. It pulls the guest list and table layout from the existing tabs — no re-entry needed.
+      </div>
+
+      <div className="sidebar-foot">
+        <div className="sf-label">Active wedding</div>
+        <div className="sf-name">{WEDDING.name}</div>
+        <div className="sf-date">{WEDDING.venue} · {WEDDING.date}</div>
+      </div>
+    </aside>
+  );
+}
+
+// ─── Top Bar (seating sub-flow) ───────────────────────────────────────────────
 const FLOW = [
-  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'dashboard', label: 'Overview' },
   { key: 'constraints', label: 'Constraints' },
   { key: 'generating', label: 'Generating' },
   { key: 'canvas', label: 'Review & Edit' },
@@ -60,9 +120,10 @@ function TopNav({ screen, onNavigate }) {
 
   return (
     <nav className="topnav">
-      <div className="topnav-brand">
-        <span className="brand-mark">◆</span>
-        <span className="brand-name">WedSeat</span>
+      <div className="topnav-context">
+        <span className="ctx-feature">Seating Arrangement</span>
+        <span className="ctx-sep">/</span>
+        <span className="ctx-current">{FLOW[active]?.label}</span>
       </div>
       <div className="topnav-steps">
         {FLOW.map((s, i) => {
@@ -82,10 +143,6 @@ function TopNav({ screen, onNavigate }) {
           );
         })}
       </div>
-      <div className="topnav-wedding">
-        <div className="wedding-name">{WEDDING.name}</div>
-        <div className="wedding-date">{WEDDING.date}</div>
-      </div>
     </nav>
   );
 }
@@ -96,10 +153,10 @@ function Dashboard({ onStart }) {
     <div className="screen">
       <div className="dash-hero">
         <div>
-          <h1 className="dash-title">{WEDDING.name}</h1>
-          <p className="dash-sub">{WEDDING.venue} &nbsp;·&nbsp; {WEDDING.date}</p>
+          <h1 className="dash-title">Seating Arrangement</h1>
+          <p className="dash-sub">{WEDDING.name} &nbsp;·&nbsp; {WEDDING.venue} &nbsp;·&nbsp; {WEDDING.date}</p>
         </div>
-        <button className="btn-primary btn-lg" onClick={onStart}>✦&nbsp; Arrange Seating with AI</button>
+        <span className="dash-status-chip">⚠ Seating unassigned</span>
       </div>
 
       <div className="stats-row">
@@ -117,9 +174,23 @@ function Dashboard({ onStart }) {
         ))}
       </div>
 
-      <div className="dash-panels">
+      <div className="how-strip">
+        <span className="how-strip-title">✦ How AI seating works</span>
+        <div className="how-strip-steps">
+          <span className="how-strip-step"><b>1</b> Add the couple's constraints</span>
+          <span className="how-arrow">→</span>
+          <span className="how-strip-step"><b>2</b> AI drafts a chart & flags conflicts</span>
+          <span className="how-arrow">→</span>
+          <span className="how-strip-step"><b>3</b> You edit, then approve before sharing</span>
+        </div>
+      </div>
+
+      <div className="dash-panels two">
         <div className="panel">
-          <div className="panel-hd"><h3>Guest List</h3><span className="badge">{GUESTS.length}</span></div>
+          <div className="panel-hd">
+            <div className="panel-hd-titled"><h3>Guests</h3><span className="panel-src">↓ from Guest List</span></div>
+            <span className="badge">{GUESTS.length}</span>
+          </div>
           <div className="list-scroll">
             {GUESTS.slice(0, 10).map(g => (
               <div key={g.id} className="list-row">
@@ -136,7 +207,10 @@ function Dashboard({ onStart }) {
         </div>
 
         <div className="panel">
-          <div className="panel-hd"><h3>Tables</h3><span className="badge">{TABLES.length}</span></div>
+          <div className="panel-hd">
+            <div className="panel-hd-titled"><h3>Tables</h3><span className="panel-src">↓ from Seating Charts</span></div>
+            <span className="badge">{TABLES.length}</span>
+          </div>
           <div className="list-scroll">
             {TABLES.map(t => (
               <div key={t.id} className="list-row">
@@ -153,16 +227,9 @@ function Dashboard({ onStart }) {
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="panel panel-action">
-          <div className="action-icon">✦</div>
-          <h3>How AI seating works</h3>
-          <ol className="how-list">
-            <li>Add the couple's constraints — relationships, conflicts, preferences.</li>
-            <li>AI drafts a chart from your guest list and flags conflicts.</li>
-            <li>You edit on the canvas, then approve before anything is shared.</li>
-          </ol>
+          <div className="panel-foot">
+            <button className="btn-primary btn-lg" onClick={onStart}>✦&nbsp; Arrange Seating with AI</button>
+          </div>
         </div>
       </div>
     </div>
@@ -531,14 +598,17 @@ export default function App() {
   const go = (s) => setScreen(s);
   return (
     <div className="app">
-      <TopNav screen={screen} onNavigate={go} />
-      <main className="app-main">
-        {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
-        {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
-        {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
-        {screen === 'canvas'      && <SeatingCanvas onApprove={() => go('approved')} onBack={() => go('constraints')} />}
-        {screen === 'approved'    && <Approved onBack={() => go('canvas')} />}
-      </main>
+      <ProductSidebar />
+      <div className="app-body">
+        <TopNav screen={screen} onNavigate={go} />
+        <main className="app-main">
+          {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
+          {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
+          {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
+          {screen === 'canvas'      && <SeatingCanvas onApprove={() => go('approved')} onBack={() => go('constraints')} />}
+          {screen === 'approved'    && <Approved onBack={() => go('canvas')} />}
+        </main>
+      </div>
     </div>
   );
 }

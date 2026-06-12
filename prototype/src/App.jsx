@@ -5,10 +5,16 @@ import './App.css';
 const guest = (id) => GUESTS.find(g => g.id === id);
 
 // ─── Top Nav ──────────────────────────────────────────────────────────────────
-function TopNav({ screen }) {
-  const steps = ['Dashboard', 'Constraints', 'Generating', 'Review & Edit', 'Approved'];
-  const screenToStep = { dashboard: 0, constraints: 1, generating: 2, canvas: 3, approved: 4 };
-  const active = screenToStep[screen] ?? 0;
+const FLOW = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'constraints', label: 'Constraints' },
+  { key: 'generating', label: 'Generating' },
+  { key: 'canvas', label: 'Review & Edit' },
+  { key: 'approved', label: 'Approved' },
+];
+
+function TopNav({ screen, onNavigate }) {
+  const active = FLOW.findIndex(s => s.key === screen);
 
   return (
     <nav className="topnav">
@@ -17,13 +23,22 @@ function TopNav({ screen }) {
         <span className="brand-name">WedSeat</span>
       </div>
       <div className="topnav-steps">
-        {steps.map((s, i) => (
-          <div key={s} className={`nav-step ${i === active ? 'active' : ''} ${i < active ? 'done' : ''}`}>
-            <span className="nav-dot">{i < active ? '✓' : i + 1}</span>
-            <span className="nav-label">{s}</span>
-            {i < steps.length - 1 && <span className="nav-line" />}
-          </div>
-        ))}
+        {FLOW.map((s, i) => {
+          // Generating is a transient state — not a place you navigate to.
+          const clickable = s.key !== 'generating';
+          return (
+            <button
+              key={s.key}
+              className={`nav-step ${i === active ? 'active' : ''} ${i < active ? 'done' : ''} ${clickable ? 'clickable' : ''}`}
+              onClick={() => clickable && onNavigate(s.key)}
+              disabled={!clickable}
+            >
+              <span className="nav-dot">{i < active ? '✓' : i + 1}</span>
+              <span className="nav-label">{s.label}</span>
+              {i < FLOW.length - 1 && <span className="nav-line" />}
+            </button>
+          );
+        })}
       </div>
       <div className="topnav-wedding">
         <div className="wedding-name">{WEDDING.name}</div>
@@ -100,9 +115,12 @@ function Dashboard({ onStart }) {
 
         <div className="panel panel-action">
           <div className="action-icon">✦</div>
-          <h3>Ready to arrange seating?</h3>
-          <p>Enter the couple's constraints, let AI draft a chart, then review and approve before sharing.</p>
-          <button className="btn-primary" onClick={onStart} style={{marginTop:20}}>Start Seating Arrangement →</button>
+          <h3>How AI seating works</h3>
+          <ol className="how-list">
+            <li>Add the couple's constraints — relationships, conflicts, preferences.</li>
+            <li>AI drafts a chart from your guest list and flags conflicts.</li>
+            <li>You edit on the canvas, then approve before anything is shared.</li>
+          </ol>
         </div>
       </div>
     </div>
@@ -110,11 +128,20 @@ function Dashboard({ onStart }) {
 }
 
 // ─── Constraint Capture ───────────────────────────────────────────────────────
-function ConstraintCapture({ onGenerate }) {
+function ConstraintCapture({ onGenerate, onBack }) {
   const [added, setAdded] = useState([]);
   const [custom, setCustom] = useState('');
+  const [customList, setCustomList] = useState([]);
 
   const toggle = (id) => setAdded(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const addCustom = () => {
+    const text = custom.trim();
+    if (!text) return;
+    setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text }]);
+    setCustom('');
+  };
+  const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
+  const totalCount = added.length + customList.length;
 
   return (
     <div className="screen two-col">
@@ -142,9 +169,7 @@ function ConstraintCapture({ onGenerate }) {
             <h2>Add Constraints</h2>
             <p className="sub-text">Click to add, or type your own. These drive the draft.</p>
           </div>
-          <button className="btn-primary btn-lg" onClick={() => onGenerate(added)}>
-            ✦&nbsp; Generate Draft →
-          </button>
+          <button className="btn-outline" onClick={onBack}>← Back</button>
         </div>
 
         <div className="suggestions-block">
@@ -168,17 +193,23 @@ function ConstraintCapture({ onGenerate }) {
               onChange={e => setCustom(e.target.value)}
               rows={3}
             />
-            <button className="btn-outline" disabled={!custom.trim()} onClick={() => setCustom('')}>Add</button>
+            <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
           </div>
         </div>
 
-        {added.length > 0 && (
+        {totalCount > 0 && (
           <div className="added-block">
-            <div className="suggestions-label">Added ({added.length})</div>
+            <div className="suggestions-label">Added ({totalCount})</div>
             {HARDCODED_CONSTRAINTS.filter(c => added.includes(c.id)).map(c => (
               <div key={c.id} className="added-item">
                 <span>{c.icon} {c.text}</span>
                 <button className="remove-btn" onClick={() => toggle(c.id)}>×</button>
+              </div>
+            ))}
+            {customList.map(c => (
+              <div key={c.id} className="added-item">
+                <span>✎ {c.text}</span>
+                <button className="remove-btn" onClick={() => removeCustom(c.id)}>×</button>
               </div>
             ))}
           </div>
@@ -290,7 +321,7 @@ function TableCard({ table, guestIds, conflicts, onDragStart, onDrop }) {
 }
 
 // ─── Canvas ───────────────────────────────────────────────────────────────────
-function SeatingCanvas({ onApprove }) {
+function SeatingCanvas({ onApprove, onBack }) {
   const [assignment, setAssignment] = useState({
     1: [1, 3, 4, 5, 6, 7],
     2: [8, 23, 24, 22, 21],
@@ -329,8 +360,8 @@ function SeatingCanvas({ onApprove }) {
             <p className="sub-text">Drag guests between tables to resolve conflicts. Approve when ready.</p>
           </div>
           <div style={{display:'flex',gap:8}}>
+            <button className="btn-outline" onClick={onBack}>← Back</button>
             <button className="btn-outline">↺ Regenerate</button>
-            <button className="btn-outline">⊞ Compare</button>
             <button className="btn-primary" onClick={onApprove}>✓ Approve & Share →</button>
           </div>
         </div>
@@ -434,15 +465,16 @@ function Approved({ onBack }) {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('dashboard');
+  const go = (s) => setScreen(s);
   return (
     <div className="app">
-      <TopNav screen={screen} />
+      <TopNav screen={screen} onNavigate={go} />
       <main className="app-main">
-        {screen === 'dashboard'   && <Dashboard onStart={() => setScreen('constraints')} />}
-        {screen === 'constraints' && <ConstraintCapture onGenerate={() => setScreen('generating')} />}
-        {screen === 'generating'  && <Generating onDone={() => setScreen('canvas')} />}
-        {screen === 'canvas'      && <SeatingCanvas onApprove={() => setScreen('approved')} />}
-        {screen === 'approved'    && <Approved onBack={() => setScreen('canvas')} />}
+        {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
+        {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
+        {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
+        {screen === 'canvas'      && <SeatingCanvas onApprove={() => go('approved')} onBack={() => go('constraints')} />}
+        {screen === 'approved'    && <Approved onBack={() => go('canvas')} />}
       </main>
     </div>
   );

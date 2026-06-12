@@ -36,7 +36,10 @@
 .brand-mark { color:var(--sage); font-size:18px; }
 .brand-name { font-size:16px; font-weight:700; color:var(--charcoal); letter-spacing:-.3px; }
 .topnav-steps { display:flex; align-items:center; gap:0; }
-.nav-step { display:flex; align-items:center; gap:6px; color:var(--gray-md); font-size:12px; }
+.nav-step { display:flex; align-items:center; gap:6px; color:var(--gray-md); font-size:12px; background:none; border:none; padding:0; cursor:default; }
+.nav-step.clickable { cursor:pointer; }
+.nav-step.clickable:hover .nav-label { color:var(--sage); }
+.nav-step.clickable:hover .nav-dot { box-shadow:0 0 0 2px var(--sage-light); }
 .nav-step.active { color:var(--sage); font-weight:600; }
 .nav-step.done { color:var(--gray-md); }
 .nav-dot {
@@ -111,6 +114,9 @@
 .panel-action { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px; }
 .action-icon { font-size:32px; color:var(--sage); }
 .panel-action h3 { font-size:16px; font-weight:600; }
+.how-list { align-self:stretch; text-align:left; margin:14px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:10px; }
+.how-list li { font-size:13px; color:var(--gray-dk); line-height:1.45; }
+.how-list li::marker { color:var(--sage); font-weight:700; }
 .panel-action p { font-size:13px; color:var(--gray-dk); line-height:1.5; }
 
 /* ── Shared list rows ── */

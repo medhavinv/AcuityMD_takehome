@@ -378,10 +378,13 @@ function Dashboard({ onStart }) {
               </div>
             ))}
           </div>
-          <div className="panel-foot">
-            <button className="btn-primary btn-lg" onClick={onStart}>Auto-Arrange Seating →</button>
           </div>
         </div>
+      </div>
+
+      <div className="dash-bottom-bar">
+        <div className="dash-bottom-hint">Ready to generate a seating chart from the above data?</div>
+        <button className="btn-primary btn-lg btn-full" onClick={onStart}>Auto-Arrange Seating →</button>
       </div>
     </div>
   );

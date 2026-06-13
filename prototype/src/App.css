@@ -269,6 +269,13 @@
 .dash-panels { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
 .dash-panels.two { grid-template-columns:1fr 1fr; }
 .panel-foot { margin-top:14px; padding-top:14px; border-top:1px solid var(--gray-lt); display:flex; justify-content:flex-end; }
+.dash-bottom-bar {
+  margin-top:20px; padding:20px 24px; background:var(--white);
+  border:1px solid var(--gray-lt); border-radius:var(--r); box-shadow:var(--sh);
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+}
+.dash-bottom-hint { font-size:13.5px; color:var(--gray-dk); }
+.btn-full { width:auto; min-width:220px; }
 .panel {
   background:var(--white); border:1px solid var(--gray-lt); border-radius:var(--r);
   padding:20px; box-shadow:var(--sh);

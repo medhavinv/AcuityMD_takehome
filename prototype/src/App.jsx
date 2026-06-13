@@ -423,15 +423,24 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const totalCount = added.length + customList.length;
 
   // The exact rules carried into the draft: applied suggestions (with any edits)
-  // plus custom rules that fully resolved (a real type, no unconfirmed names).
+  // plus custom rules. Every applied rule must be valid to proceed (see below),
+  // so no silent dropping is needed here.
   const buildAppliedRules = () => [
     ...HARDCODED_CONSTRAINTS
       .filter(c => added.includes(c.id))
       .map(c => ({ id: c.id, ...getRule(c) })),
     ...customList
-      .filter(c => c.rule.type !== 'ERROR' && (c.rule.ambiguous || []).length === 0)
       .map(c => ({ id: c.id, type: c.rule.type, guests: c.rule.guests, zone: c.rule.zone })),
   ];
+
+  // A rule is incomplete if it has no rule type, binds to no guests, or still
+  // has an unconfirmed ambiguous name — the same states the rows flag with ⚠.
+  const ruleIsValid = (rule) =>
+    rule.type !== 'ERROR' && rule.guests.length > 0 && (rule.ambiguous || []).length === 0;
+  const invalidCount = [
+    ...HARDCODED_CONSTRAINTS.filter(c => added.includes(c.id)).map(getRule),
+    ...customList.map(c => c.rule),
+  ].filter(r => !ruleIsValid(r)).length;
 
   return (
     <div className="screen">
@@ -536,11 +545,18 @@ function ConstraintCapture({ onGenerate, onBack }) {
       </div>
 
       <div className="dash-bottom-bar">
-        <div className="info-note">
-          <span className="info-icon">ℹ</span>
-          Your guest list, RSVPs, table capacities, and constraints are used to generate the draft. You review and approve before anything is shared.
+        <div className={`info-note${invalidCount > 0 ? ' info-note-warn' : ''}`}>
+          <span className="info-icon">{invalidCount > 0 ? '⚠' : 'ℹ'}</span>
+          {invalidCount > 0
+            ? `${invalidCount} constraint${invalidCount > 1 ? 's need' : ' needs'} attention — pick a rule type, add a guest, or confirm an ambiguous name before generating.`
+            : 'Your guest list, RSVPs, table capacities, and constraints are used to generate the draft. You review and approve before anything is shared.'}
         </div>
-        <button className="btn-primary btn-lg btn-full" onClick={() => onGenerate(buildAppliedRules())}>Generate Seating Draft →</button>
+        <button
+          className="btn-primary btn-lg btn-full"
+          disabled={invalidCount > 0}
+          title={invalidCount > 0 ? 'Resolve the flagged constraints to continue' : undefined}
+          onClick={() => onGenerate(buildAppliedRules())}
+        >Generate Seating Draft →</button>
       </div>
     </div>
   );

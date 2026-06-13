@@ -134,6 +134,8 @@
   transition:background .15s, box-shadow .15s;
 }
 .btn-primary:hover { background:#5a8a59; box-shadow:0 2px 8px rgba(107,155,106,.3); }
+.btn-primary:disabled { opacity:.45; cursor:not-allowed; }
+.btn-primary:disabled:hover { background:var(--sage); box-shadow:none; }
 .btn-primary.btn-lg { padding:11px 24px; font-size:14px; }
 .btn-outline {
   background:var(--white); color:var(--gray-dk); border:1.5px solid var(--gray-lt);
@@ -360,6 +362,8 @@
 .remove-btn:hover { color:var(--red); }
 
 .info-note { display:flex; gap:8px; font-size:12px; color:var(--gray-md); line-height:1.5; flex:1; }
+.info-note.info-note-warn { color:#B45309; font-weight:500; }
+.info-note.info-note-warn .info-icon { color:#D97706; }
 .info-icon { font-size:14px; flex-shrink:0; color:var(--sage); margin-top:1px; }
 
 /* ── Generating ── */

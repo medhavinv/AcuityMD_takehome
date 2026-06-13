@@ -527,7 +527,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
       <div className="dash-bottom-bar">
         <div className="info-note">
           <span className="info-icon">ℹ</span>
-          AI uses your guest list, RSVPs, table capacities, and constraints. You review and approve before anything is shared.
+          Your guest list, RSVPs, table capacities, and constraints are used to generate the draft. You review and approve before anything is shared.
         </div>
         <button className="btn-primary btn-lg btn-full" onClick={() => onGenerate(added)}>Generate Seating Draft →</button>
       </div>

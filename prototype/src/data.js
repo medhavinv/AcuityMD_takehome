@@ -73,14 +73,14 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c3",
-    text: "College friends near the bar — Sarah, Mike, Jake, and Chloe should be at Table 4",
+    text: "Seat Sarah, Mike, Jake & Chloe near the bar — they're college friends and want to be together",
     category: "preference",
     icon: "🍸",
     rule: { type: "SEAT_TOGETHER", guests: [11, 12, 13, 14], zone: "Near bar" },
   },
   {
     id: "c4",
-    text: "Elderly guests away from speakers — Rose and Frank are hard of hearing, seat at Table 2",
+    text: "Keep Rose & Frank away from the speakers — they're hard of hearing and need a quieter spot",
     category: "accessibility",
     icon: "♿",
     rule: { type: "ZONE_AVOID", guests: [7, 8], zone: "Away from speakers" },
@@ -94,7 +94,7 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c6",
-    text: "Kids table together — Oliver, Lily, and Noah at Table 6, away from the bar",
+    text: "Seat Oliver, Lily & Noah together at Table 6, away from the bar — they're the youngest guests",
     category: "preference",
     icon: "🧒",
     rule: { type: "SEAT_TOGETHER", guests: [18, 19, 20], zone: "Away from bar" },

@@ -199,11 +199,10 @@ function ProductSidebar() {
 
 // ─── Top Bar (seating sub-flow) ───────────────────────────────────────────────
 const FLOW = [
-  { key: 'dashboard', label: 'Overview' },
+  { key: 'dashboard',   label: 'Overview' },
   { key: 'constraints', label: 'Constraints' },
-  { key: 'generating', label: 'Generating' },
-  { key: 'canvas', label: 'Review & Edit' },
-  { key: 'approved', label: 'Published' },
+  { key: 'canvas',      label: 'Review & Edit' },
+  { key: 'approved',    label: 'Published' },
 ];
 
 function TopNav({ screen, onNavigate }) {
@@ -218,8 +217,7 @@ function TopNav({ screen, onNavigate }) {
       </div>
       <div className="topnav-steps">
         {FLOW.map((s, i) => {
-          // Generating is a transient state — not a place you navigate to.
-          const clickable = s.key !== 'generating';
+          const clickable = true;
           return (
             <button
               key={s.key}

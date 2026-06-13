@@ -305,7 +305,7 @@ function Dashboard({ onStart }) {
             ))}
           </div>
           <div className="panel-foot">
-            <button className="btn-primary btn-lg" onClick={onStart}>✦&nbsp; Arrange Seating with AI</button>
+            <button className="btn-primary btn-lg" onClick={onStart}>Auto-Arrange Seating →</button>
           </div>
         </div>
       </div>
@@ -383,7 +383,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
         </div>
 
         <div className="custom-block">
-          <div className="suggestions-label">Custom constraint</div>
+          <div className="suggestions-label"><span className="ai-spark">✦</span> Custom constraint <span className="ai-label">AI parses guest names</span></div>
           <div style={{display:'flex',gap:8}}>
             <textarea
               className="constraint-input"
@@ -434,7 +434,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
             <span className="info-icon">ℹ</span>
             AI uses your guest list, RSVPs, table capacities, and constraints. You review and approve before anything is shared.
           </div>
-          <button className="btn-primary btn-lg" onClick={() => onGenerate(added)}>✦&nbsp; Generate Seating Draft</button>
+          <button className="btn-primary btn-lg" onClick={() => onGenerate(added)}>Generate Seating Draft →</button>
         </div>
       </div>
     </div>

@@ -267,7 +267,9 @@
   background:var(--white); border:1px solid var(--gray-lt); border-radius:var(--r);
   padding:20px; box-shadow:var(--sh);
 }
-.suggestions-label { font-size:11px; font-weight:700; color:var(--gray-md); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+.suggestions-label { font-size:11px; font-weight:700; color:var(--gray-md); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; display:flex; align-items:center; gap:5px; }
+.ai-spark { color:var(--sage); font-size:13px; }
+.ai-label { font-size:10px; font-weight:600; color:var(--sage); background:var(--sage-light); border-radius:4px; padding:1px 6px; text-transform:none; letter-spacing:0; }
 .chip {
   display:flex; align-items:flex-start; gap:10px; width:100%; text-align:left;
   background:var(--cream); border:1.5px solid var(--gray-lt); border-radius:8px;

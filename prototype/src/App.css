@@ -48,6 +48,9 @@
 .side-source { font-size:9px; font-weight:600; color:var(--gray-md); background:var(--cream); border:1px solid var(--gray-lt); padding:2px 5px; border-radius:4px; white-space:nowrap; }
 .panel-hd-titled { display:flex; align-items:baseline; gap:8px; }
 .panel-src { font-size:11px; font-weight:500; color:var(--gray-md); }
+.panel-meta { display:flex; align-items:center; gap:6px; }
+.badge-muted { background:var(--cream); color:var(--gray-md); border:1px solid var(--gray-lt); font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; }
+.rule-badge[title] { cursor:help; }
 .sidebar-hint { font-size:10.5px; color:var(--gray-md); line-height:1.5; background:var(--cream); border:1px dashed var(--gray-lt); border-radius:8px; padding:10px; margin-top:14px; }
 .sidebar-foot { margin-top:auto; border-top:1px solid var(--gray-lt); padding:14px 8px 4px; }
 .sf-label { font-size:10px; font-weight:700; color:var(--gray-md); text-transform:uppercase; letter-spacing:.5px; }

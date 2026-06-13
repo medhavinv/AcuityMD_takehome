@@ -9,11 +9,11 @@ const guest = (id) => GUESTS.find(g => g.id === id);
 // attribute. The rule row below each added constraint shows the planner exactly
 // what the system will execute.
 const RULE_LABELS = {
-  KEEP_APART:    { label: '✕ Keep apart',    cls: 'rule-apart' },
-  SEAT_TOGETHER: { label: '⊕ Seat together', cls: 'rule-together' },
-  ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone' },
-  ZONE_PREFER:   { label: '◎ Place near',    cls: 'rule-zone' },
-  CUSTOM:        { label: '✎ Custom rule',   cls: 'rule-custom' },
+  KEEP_APART:    { label: '✕ Keep apart',    cls: 'rule-apart',    tip: 'These guests will not be placed at the same table.' },
+  SEAT_TOGETHER: { label: '⊕ Seat together', cls: 'rule-together', tip: 'These guests will be placed at the same table.' },
+  ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone',     tip: 'These guests will be kept away from the specified zone (e.g. speakers, bar).' },
+  ZONE_PREFER:   { label: '◎ Place near',    cls: 'rule-zone',     tip: 'These guests will be prioritised for placement near the specified zone (e.g. service, bar).' },
+  CUSTOM:        { label: '✎ Custom rule',   cls: 'rule-custom',   tip: 'Rule parsed from your note. Matched guests shown — edit the text if anyone is missing.' },
 };
 
 // Match typed text against guest names (word-boundary, skips honorifics).
@@ -30,7 +30,7 @@ function RuleRow({ rule }) {
   const meta = RULE_LABELS[rule.type] || RULE_LABELS.CUSTOM;
   return (
     <div className="rule-row">
-      <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+      <span className={`rule-badge ${meta.cls}`} title={meta.tip}>{meta.label}</span>
       {rule.guests.length > 0 ? (
         rule.guests.map(id => (
           <span key={id} className="rule-guest">
@@ -159,21 +159,6 @@ function Dashboard({ onStart }) {
         <span className="dash-status-chip">⚠ Seating unassigned</span>
       </div>
 
-      <div className="stats-row">
-        {[
-          { label: 'Guests confirmed', value: '24', sub: '6 pending' },
-          { label: 'Tables set up', value: '6', sub: '8 seats avg' },
-          { label: 'Seating status', value: 'Unassigned', sub: 'Action needed', alert: true },
-          { label: 'Days to wedding', value: '94', sub: WEDDING.date },
-        ].map(s => (
-          <div key={s.label} className={`stat-card${s.alert ? ' stat-alert' : ''}`}>
-            <div className="stat-val">{s.value}</div>
-            <div className="stat-lbl">{s.label}</div>
-            <div className="stat-sub">{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
       <div className="how-strip">
         <span className="how-strip-title">✦ How AI seating works</span>
         <div className="how-strip-steps">
@@ -189,7 +174,7 @@ function Dashboard({ onStart }) {
         <div className="panel">
           <div className="panel-hd">
             <div className="panel-hd-titled"><h3>Guests</h3><span className="panel-src">↓ from Guest List</span></div>
-            <span className="badge">{GUESTS.length}</span>
+            <div className="panel-meta"><span className="badge">{GUESTS.filter(g=>g.rsvp==='confirmed').length} confirmed</span><span className="badge-muted">6 pending</span></div>
           </div>
           <div className="list-scroll">
             {GUESTS.slice(0, 10).map(g => (
@@ -209,7 +194,7 @@ function Dashboard({ onStart }) {
         <div className="panel">
           <div className="panel-hd">
             <div className="panel-hd-titled"><h3>Tables</h3><span className="panel-src">↓ from Seating Charts</span></div>
-            <span className="badge">{TABLES.length}</span>
+            <div className="panel-meta"><span className="badge">{TABLES.length} tables</span><span className="badge-muted">8 seats avg</span></div>
           </div>
           <div className="list-scroll">
             {TABLES.map(t => (
@@ -477,12 +462,12 @@ function SeatingCanvas({ onApprove, onBack }) {
         <div className="canvas-hd">
           <div>
             <h2>Seating Draft</h2>
-            <p className="sub-text">Drag guests between tables to resolve conflicts. Approve when ready.</p>
+            <p className="sub-text">Drag guests between tables to resolve conflicts. Publish when ready.</p>
           </div>
           <div style={{display:'flex',gap:8}}>
             <button className="btn-outline" onClick={onBack}>← Back</button>
             <button className="btn-outline">↺ Regenerate</button>
-            <button className="btn-primary" onClick={onApprove}>✓ Approve & Share →</button>
+            <button className="btn-primary" onClick={onApprove}>✦ Publish to Seating Chart →</button>
           </div>
         </div>
 
@@ -574,8 +559,8 @@ function Approved({ onBack }) {
     <div className="screen center-screen">
       <div className="approved-card">
         <div className="approved-check">✓</div>
-        <h2>Seating Chart Approved</h2>
-        <p className="sub-text">Finalised and ready to share with the couple or send to the venue.</p>
+        <h2>Published to Seating Chart</h2>
+        <p className="sub-text">The arrangement is now live in your Seating Charts tab. Share with the couple or export when ready.</p>
         <div className="approved-actions">
           <button className="btn-primary btn-lg">Share with Couple</button>
           <button className="btn-outline">Export PDF</button>

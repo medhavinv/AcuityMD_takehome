@@ -121,22 +121,9 @@ export const RESOLVED_SEATING = {
   6: [18, 19, 20, 21, 22, 9],
 };
 
-export const CONFLICTS = [
-  {
-    id: "cf1",
-    severity: "high",
-    message: "Uncle Rob (Table 3) is adjacent to Aunt Lisa (Table 3) — same table, violates constraint",
-    guests: [9, 10],
-    table: 3,
-  },
-  {
-    id: "cf2",
-    severity: "medium",
-    message: "Kids (Oliver, Lily, Noah) placed at Table 4 near the bar — conflicts with accessibility preference",
-    guests: [18, 19, 20],
-    table: 4,
-  },
-];
+// Conflicts are no longer a fixed fixture — they're derived at runtime in
+// detectConflicts() from the rules the planner actually applied and the live
+// seating. See SeatingCanvas in App.jsx.
 
 export const RATIONALE = [
   { table: 1, note: "Immediate family anchors the sweetheart table — both mothers kept on same side." },

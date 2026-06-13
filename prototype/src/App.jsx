@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { WEDDING, GUESTS, TABLES, HARDCODED_CONSTRAINTS, CONFLICTS, RATIONALE } from './data';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { WEDDING, GUESTS, TABLES, HARDCODED_CONSTRAINTS, RATIONALE } from './data';
 import './App.css';
 
 const guest = (id) => GUESTS.find(g => g.id === id);
@@ -422,6 +422,17 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const updateCustomRule = (id, rule) => setCustomList(prev => prev.map(c => c.id === id ? { ...c, rule } : c));
   const totalCount = added.length + customList.length;
 
+  // The exact rules carried into the draft: applied suggestions (with any edits)
+  // plus custom rules that fully resolved (a real type, no unconfirmed names).
+  const buildAppliedRules = () => [
+    ...HARDCODED_CONSTRAINTS
+      .filter(c => added.includes(c.id))
+      .map(c => ({ id: c.id, ...getRule(c) })),
+    ...customList
+      .filter(c => c.rule.type !== 'ERROR' && (c.rule.ambiguous || []).length === 0)
+      .map(c => ({ id: c.id, type: c.rule.type, guests: c.rule.guests, zone: c.rule.zone })),
+  ];
+
   return (
     <div className="screen">
       <div className="two-col">
@@ -529,7 +540,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
           <span className="info-icon">ℹ</span>
           Your guest list, RSVPs, table capacities, and constraints are used to generate the draft. You review and approve before anything is shared.
         </div>
-        <button className="btn-primary btn-lg btn-full" onClick={() => onGenerate(added)}>Generate Seating Draft →</button>
+        <button className="btn-primary btn-lg btn-full" onClick={() => onGenerate(buildAppliedRules())}>Generate Seating Draft →</button>
       </div>
     </div>
   );
@@ -630,17 +641,108 @@ function TableCard({ table, guestIds, conflicts, onDragStart, onDrop }) {
   );
 }
 
+// ─── Conflict evaluation ──────────────────────────────────────────────────────
+// Conflicts are derived live from the rules the planner actually applied and the
+// current seating — not a fixed list. No rules (or a clean layout) means no
+// conflicts, and dragging a guest to a valid table clears the flag on its own.
+//
+// MVP capability, honestly scoped:
+//   • KEEP_APART / SEAT_TOGETHER  → same-table relationships (hard, enforced)
+//   • ZONE_AVOID                  → keep guests out of a zone (hard, enforced)
+//   • ZONE_PREFER                 → soft preference, surfaced in rationale only
+// Zones map to the table attributes we actually model (bar / speakers / service).
+const ZONE_MAP = {
+  'near bar':           { attr: 'nearBar',      want: true  },
+  'away from bar':      { attr: 'nearBar',      want: false },
+  'near speakers':      { attr: 'nearSpeakers', want: true  },
+  'away from speakers': { attr: 'nearSpeakers', want: false },
+  'near service':       { attr: 'nearService',  want: true  },
+};
+const zoneSpec = (zone) => ZONE_MAP[(zone || '').trim().toLowerCase()];
+
+const firstName = (id) => guest(id)?.name.split(' ')[0] || `#${id}`;
+const nameList = (ids) => {
+  const names = ids.map(firstName);
+  return names.length <= 1
+    ? names.join('')
+    : `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`;
+};
+
+function detectConflicts(rules, assignment, tables) {
+  const tableOf = {};
+  for (const [tid, ids] of Object.entries(assignment)) {
+    for (const id of ids) tableOf[id] = Number(tid);
+  }
+  const tableById = Object.fromEntries(tables.map(t => [t.id, t]));
+  const out = [];
+
+  const flagZone = (rule, ids) => {
+    const spec = zoneSpec(rule.zone);
+    if (!spec) return;
+    const bad = ids.filter(id => Boolean(tableById[tableOf[id]]?.[spec.attr]) !== spec.want);
+    if (bad.length === 0) return;
+    out.push({
+      id: `${rule.id}-zone`,
+      severity: 'medium',
+      message: `${nameList(bad)} ${bad.length > 1 ? 'are' : 'is'} at ${tableById[tableOf[bad[0]]].name} — conflicts with “${rule.zone}”.`,
+      guests: bad,
+      table: tableOf[bad[0]],
+    });
+  };
+
+  for (const rule of rules) {
+    const seated = rule.guests.filter(id => tableOf[id] != null);
+    if (seated.length === 0) continue;
+
+    if (rule.type === 'KEEP_APART') {
+      const byTable = {};
+      seated.forEach(id => (byTable[tableOf[id]] ||= []).push(id));
+      for (const [tid, ids] of Object.entries(byTable)) {
+        if (ids.length > 1) {
+          out.push({
+            id: `${rule.id}-${tid}`,
+            severity: 'high',
+            message: `${nameList(ids)} are seated together at ${tableById[tid].name} — violates a keep-apart rule.`,
+            guests: ids,
+            table: Number(tid),
+          });
+        }
+      }
+    } else if (rule.type === 'SEAT_TOGETHER') {
+      const used = [...new Set(seated.map(id => tableOf[id]))];
+      if (used.length > 1) {
+        out.push({
+          id: `${rule.id}-split`,
+          severity: 'medium',
+          message: `${nameList(seated)} should sit together but are split across ${used.length} tables.`,
+          guests: seated,
+          table: tableOf[seated[0]],
+        });
+      } else {
+        flagZone(rule, seated);  // together already — check any attached zone
+      }
+    } else if (rule.type === 'ZONE_AVOID') {
+      flagZone(rule, seated);
+    }
+    // ZONE_PREFER is intentionally soft — never raised as a blocking conflict.
+  }
+  return out;
+}
+
 // ─── Canvas ───────────────────────────────────────────────────────────────────
-function SeatingCanvas({ onApprove, onBack }) {
+function SeatingCanvas({ appliedRules, onApprove, onBack }) {
   const [assignment, setAssignment] = useState({
     1: [1, 3, 4, 5, 6, 7],
     2: [8, 23, 24, 22, 21],
-    3: [2, 10, 15, 17, 9, 13],
-    4: [11, 12, 14, 18, 19, 20],
+    3: [2, 10, 15, 17, 9],
+    4: [11, 12, 13, 14, 18, 19, 20],
     5: [16],
     6: [],
   });
-  const [conflicts, setConflicts] = useState(CONFLICTS);
+  const conflicts = useMemo(
+    () => detectConflicts(appliedRules, assignment, TABLES),
+    [appliedRules, assignment],
+  );
   const [dragging, setDragging] = useState(null);
   const [tab, setTab] = useState('conflicts');
   const [dismissed, setDismissed] = useState([]);
@@ -658,7 +760,7 @@ function SeatingCanvas({ onApprove, onBack }) {
       [fromTable]: prev[fromTable].filter(id => id !== guestId),
       [toTable]: [...(prev[toTable] || []), guestId],
     }));
-    setConflicts(prev => prev.filter(c => !c.guests.includes(guestId)));
+    // Conflicts re-derive from the new assignment automatically.
     setDragging(null);
   };
 
@@ -742,18 +844,22 @@ function SeatingCanvas({ onApprove, onBack }) {
               <div className="sidebar-divider" />
               <div className="recap">
                 <div className="recap-label">Rules applied</div>
-                {HARDCODED_CONSTRAINTS.map(c => {
-                  const meta = RULE_LABELS[c.rule.type];
+                {appliedRules.length === 0 && (
+                  <div className="recap-empty">No constraints applied — drag freely to arrange.</div>
+                )}
+                {appliedRules.map(r => {
+                  const meta = RULE_LABELS[r.type] || RULE_LABELS.CUSTOM;
+                  const icon = HARDCODED_CONSTRAINTS.find(c => c.id === r.id)?.icon || '✎';
                   return (
-                    <div key={c.id} className="recap-row">
-                      <span>{c.icon}</span>
+                    <div key={r.id} className="recap-row">
+                      <span>{icon}</span>
                       <div className="recap-body">
                         <Tooltip text={meta.tip}>
                           <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
                         </Tooltip>
                         <span className="recap-text">
-                          {c.rule.guests.map(id => guest(id)?.name.split(' ')[0]).join(', ')}
-                          {c.rule.zone ? ` · ${c.rule.zone}` : ''}
+                          {r.guests.map(id => guest(id)?.name.split(' ')[0]).join(', ')}
+                          {r.zone ? ` · ${r.zone}` : ''}
                         </span>
                       </div>
                     </div>
@@ -805,6 +911,7 @@ function Approved({ onBack, guestsSeated, openConflicts }) {
 export default function App() {
   const [screen, setScreen] = useState('dashboard');
   const [publishStats, setPublishStats] = useState({ guestsSeated: 0, openConflicts: 0 });
+  const [appliedRules, setAppliedRules] = useState([]);
   const go = (s) => setScreen(s);
   return (
     <div className="app">
@@ -819,9 +926,9 @@ export default function App() {
             </div>
           )}
           {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
-          {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
+          {screen === 'constraints' && <ConstraintCapture onGenerate={(rules) => { setAppliedRules(rules); go('generating'); }} onBack={() => go('dashboard')} />}
           {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
-          {screen === 'canvas'      && <SeatingCanvas onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
+          {screen === 'canvas'      && <SeatingCanvas appliedRules={appliedRules} onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
           {screen === 'approved'    && <Approved onBack={() => go('canvas')} guestsSeated={publishStats.guestsSeated} openConflicts={publishStats.openConflicts} />}
         </main>
       </div>

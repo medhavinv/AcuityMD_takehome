@@ -95,14 +95,14 @@ function EditableRuleRow({ rule, onChange }) {
   const unaddedGuests = GUESTS.filter(g => !localRule.guests.includes(g.id));
 
   return (
-    <div className={`rule-row editable-rule-row${isError ? ' rule-row-error' : ''}`}>
-      <Tooltip text={meta.tip}>
+    <div className="rule-row editable-rule-row">
+      <Tooltip text={isError ? RULE_LABELS.ERROR.tip : meta.tip}>
         <select
-          className={`rule-badge rule-badge-select ${meta.cls}`}
-          value={localRule.type}
-          onChange={setType}
+          className={`rule-badge rule-badge-select ${isError ? 'rule-error' : meta.cls}`}
+          value={isError ? '' : localRule.type}
+          onChange={e => e.target.value && setType(e)}
         >
-          {isError && <option value="ERROR" disabled>⚠ Select rule type…</option>}
+          <option value="" disabled>{isError ? '⚠ Select rule type…' : ''}</option>
           {Object.entries(RULE_LABELS).filter(([k]) => k !== 'CUSTOM' && k !== 'ERROR').map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}

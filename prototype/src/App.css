@@ -149,6 +149,10 @@
 .rule-together { background:var(--sage-light); color:var(--sage); }
 .rule-zone { background:#E0F2FE; color:#0369A1; }
 .rule-custom { background:#EDE9FE; color:#6B21A8; }
+.rule-error  { background:var(--red-lt); color:var(--red); }
+.rule-row-error { background:var(--red-lt); border-color:#fca5a5; border-style:solid; }
+.added-item-error { background:#FFF5F5; border:1.5px solid #fca5a5; border-radius:8px; padding:10px 12px; }
+.rule-error-prompt { width:100%; font-size:11px; color:var(--red); margin-top:6px; line-height:1.4; }
 .rule-guest {
   display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:500;
   background:var(--white); border:1px solid var(--gray-lt); border-radius:20px;

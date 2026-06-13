@@ -38,6 +38,7 @@ const RULE_LABELS = {
   ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone',     tip: 'These guests will be kept away from the specified zone (e.g. speakers, bar).' },
   ZONE_PREFER:   { label: '◎ Place near',    cls: 'rule-zone',     tip: 'These guests will be prioritised for placement near the specified zone (e.g. service, bar).' },
   CUSTOM:        { label: '✎ Custom rule',   cls: 'rule-custom',   tip: 'Rule parsed from your note. Matched guests shown — edit the text if anyone is missing.' },
+  ERROR:         { label: '⚠ Unknown',       cls: 'rule-error',    tip: 'Could not parse a rule. Select a rule type and add the guests it applies to.' },
 };
 
 // Match typed text against guest names (word-boundary, skips honorifics).
@@ -89,18 +90,20 @@ function EditableRuleRow({ rule, onChange }) {
   };
   const setType = (e) => update({ ...localRule, type: e.target.value });
 
-  const meta = RULE_LABELS[localRule.type] || RULE_LABELS.CUSTOM;
+  const meta = RULE_LABELS[localRule.type] || RULE_LABELS.ERROR;
+  const isError = localRule.type === 'ERROR';
   const unaddedGuests = GUESTS.filter(g => !localRule.guests.includes(g.id));
 
   return (
-    <div className="rule-row editable-rule-row">
+    <div className={`rule-row editable-rule-row${isError ? ' rule-row-error' : ''}`}>
       <Tooltip text={meta.tip}>
         <select
           className={`rule-badge rule-badge-select ${meta.cls}`}
           value={localRule.type}
           onChange={setType}
         >
-          {Object.entries(RULE_LABELS).filter(([k]) => k !== 'CUSTOM').map(([k, v]) => (
+          {isError && <option value="ERROR" disabled>⚠ Select rule type…</option>}
+          {Object.entries(RULE_LABELS).filter(([k]) => k !== 'CUSTOM' && k !== 'ERROR').map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}
         </select>
@@ -125,6 +128,14 @@ function EditableRuleRow({ rule, onChange }) {
           <option value="" disabled>＋ guest</option>
           {unaddedGuests.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
+      )}
+
+      {isError && (
+        <div className="rule-error-prompt">
+          {localRule.guests.length === 0
+            ? 'Select a rule type and add at least one guest to apply this constraint.'
+            : 'Guests matched — select a rule type above to complete this constraint.'}
+        </div>
       )}
     </div>
   );
@@ -307,7 +318,6 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const [added, setAdded] = useState([]);
   const [editedRules, setEditedRules] = useState({});  // overrides for hardcoded constraint rules
   const [custom, setCustom] = useState('');
-  const [customError, setCustomError] = useState('');
   const [customList, setCustomList] = useState([]);
 
   const toggle = (id) => setAdded(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
@@ -315,15 +325,12 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const addCustom = () => {
     const text = custom.trim();
     if (!text) return;
-    const matched = matchGuestsByName(text);
-    if (matched.length === 0) {
-      setCustomError('No guest names recognised. Mention guests by first name (e.g. "Margaret", "Uncle Rob") so the rule can be applied.');
-      return;
-    }
-    setCustomError('');
-    const rule = { type: 'CUSTOM', guests: matched };
+    // Always add — start in ERROR state so the planner must pick a rule type.
+    // Pre-fill any guests matched by name so they only need to pick the type.
+    const rule = { type: 'ERROR', guests: matchGuestsByName(text) };
     setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
+    setCustomError('');
   };
   const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
   const updateCustomRule = (id, rule) => setCustomList(prev => prev.map(c => c.id === id ? { ...c, rule } : c));
@@ -379,15 +386,14 @@ function ConstraintCapture({ onGenerate, onBack }) {
           <div className="suggestions-label">Custom constraint</div>
           <div style={{display:'flex',gap:8}}>
             <textarea
-              className={`constraint-input${customError ? ' constraint-input-error' : ''}`}
+              className="constraint-input"
               placeholder="e.g. Keep the O'Brien family together — they flew in from Ireland..."
               value={custom}
-              onChange={e => { setCustom(e.target.value); setCustomError(''); }}
+              onChange={e => setCustom(e.target.value)}
               rows={3}
             />
             <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
           </div>
-          {customError && <div className="constraint-error">⚠ {customError}</div>}
         </div>
 
         {totalCount > 0 && (
@@ -409,7 +415,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
               </div>
             ))}
             {customList.map(c => (
-              <div key={c.id} className="added-item">
+              <div key={c.id} className={`added-item${c.rule.type === 'ERROR' ? ' added-item-error' : ''}`}>
                 <div className="added-main">
                   <span className="added-text">✎ {c.text}</span>
                   <EditableRuleRow

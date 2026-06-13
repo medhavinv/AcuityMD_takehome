@@ -41,14 +41,35 @@ const RULE_LABELS = {
   ERROR:         { label: '⚠ Unknown',       cls: 'rule-error',    tip: 'Could not parse a rule. Select a rule type and add the guests it applies to.' },
 };
 
-// Match typed text against guest names (word-boundary, skips honorifics).
-const matchGuestsByName = (text) => {
-  const skip = new Set(['uncle', 'aunt']);
-  return GUESTS.filter(g =>
-    g.name.split(' ').some(w =>
-      w.length > 2 && !skip.has(w.toLowerCase()) && new RegExp(`\\b${w}\\b`, 'i').test(text)
-    )
-  ).map(g => g.id);
+// Parse typed text into guest references.
+// - confident: a token uniquely identifies one guest
+// - ambiguous: a token matches multiple guests — surfaced for the planner to
+//   confirm rather than silently guessing (e.g. "Patel" → Jake or Nina Patel).
+const NAME_STOPWORDS = new Set([
+  'uncle','aunt','the','and','near','away','from','keep','seat','together',
+  'apart','with','they','only','know','each','other','table','tables','bar',
+  'speakers','service','dont','don','not','next','side','far','too','who',
+]);
+
+const parseGuestNames = (text) => {
+  const tokens = [...new Set(
+    text.toLowerCase().split(/[^a-z']+/).filter(t => t.length > 2 && !NAME_STOPWORDS.has(t))
+  )];
+  const confident = new Set();
+  const rawAmbiguous = [];
+  for (const tok of tokens) {
+    const candidates = GUESTS
+      .filter(g => g.name.toLowerCase().split(/\s+/).includes(tok))
+      .map(g => g.id);
+    if (candidates.length === 1) confident.add(candidates[0]);
+    else if (candidates.length > 1) rawAmbiguous.push({ token: tok, candidates });
+  }
+  // Drop candidates already pinned by a confident token
+  // (e.g. "Jake Patel": Jake → confident, so Patel's group collapses to Jake).
+  const ambiguous = rawAmbiguous
+    .map(g => ({ token: g.token, candidates: g.candidates.filter(id => !confident.has(id)) }))
+    .filter(g => g.candidates.length > 1);
+  return { confident: [...confident], ambiguous };
 };
 
 // Read-only rule row — used in canvas sidebar recap
@@ -79,6 +100,7 @@ function RuleRow({ rule }) {
 // This is the human-in-the-loop step: confirm/correct what the AI parsed.
 function EditableRuleRow({ rule, onChange }) {
   const [localRule, setLocalRule] = useState(rule);
+  const ambiguous = localRule.ambiguous || [];
 
   const update = (updated) => { setLocalRule(updated); onChange(updated); };
   const removeGuest = (id) => update({ ...localRule, guests: localRule.guests.filter(g => g !== id) });
@@ -89,6 +111,15 @@ function EditableRuleRow({ rule, onChange }) {
     e.target.value = '';
   };
   const setType = (e) => update({ ...localRule, type: e.target.value });
+  // Planner picks which guest a token referred to → pin it, clear the group.
+  const resolveAmbiguous = (token, id) => update({
+    ...localRule,
+    guests: localRule.guests.includes(id) ? localRule.guests : [...localRule.guests, id],
+    ambiguous: ambiguous.filter(g => g.token !== token),
+  });
+  const dismissAmbiguous = (token) => update({
+    ...localRule, ambiguous: ambiguous.filter(g => g.token !== token),
+  });
 
   const meta = RULE_LABELS[localRule.type] || RULE_LABELS.ERROR;
   const isError = localRule.type === 'ERROR';
@@ -130,6 +161,23 @@ function EditableRuleRow({ rule, onChange }) {
         </select>
       )}
 
+      {ambiguous.map(grp => (
+        <div key={grp.token} className="ambiguous-block">
+          <span className="ambiguous-label">
+            ⚠ “{grp.token}” matches {grp.candidates.length} guests — which did you mean?
+          </span>
+          <div className="ambiguous-options">
+            {grp.candidates.map(id => (
+              <button key={id} className="ambiguous-pick" onClick={() => resolveAmbiguous(grp.token, id)}>
+                <span className="rule-guest-av">{guest(id)?.name[0]}</span>
+                {guest(id)?.name}
+              </button>
+            ))}
+            <button className="ambiguous-dismiss" onClick={() => dismissAmbiguous(grp.token)}>Neither / dismiss</button>
+          </div>
+        </div>
+      ))}
+
       {isError && (
         <div className="rule-error-prompt">
           {localRule.guests.length === 0
@@ -145,94 +193,122 @@ function EditableRuleRow({ rule, onChange }) {
 // The product has three existing features (Guest List, Seating Charts, To-Do).
 // This prototype adds a new feature — Seating Arrangement — that pulls data from
 // the Guest List and Seating Charts tabs. The existing tabs aren't mocked here.
-function ProductSidebar() {
+function ProductSidebar({ onNavigate }) {
+  const [collapsed, setCollapsed] = useState(false);
   const existing = [
     { key: 'guests',  label: 'Guest List',    icon: '👥', sub: `${GUESTS.length} guests`,        source: true  },
     { key: 'charts',  label: 'Seating Charts', icon: '▦',  sub: `${TABLES.length} tables`,        source: true  },
     { key: 'todo',    label: 'To-Do Tracker',  icon: '✓',  sub: '12 open',                        source: false },
   ];
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`}>
       <div className="sidebar-brand">
-        <span className="brand-mark">◆</span>
-        <span className="brand-name">WedSeat</span>
+        {!collapsed && (
+          <span className="brand-wrap">
+            <span className="brand-mark">◆</span>
+            <span className="brand-name">WedSeat</span>
+          </span>
+        )}
+        <button
+          className="sidebar-toggle"
+          onClick={() => setCollapsed(c => !c)}
+          title={collapsed ? 'Expand' : 'Collapse'}
+        >
+          {collapsed ? '»' : '«'}
+        </button>
       </div>
 
-      <div className="sidebar-section-label">Planning</div>
+      {!collapsed && <div className="sidebar-section-label">Planning</div>}
       <nav className="sidebar-nav">
         {existing.map(f => (
           <div
             key={f.key}
             className="side-item side-disabled"
-            title={f.source ? 'Existing feature — feeds data into Seating Arrangement' : 'Existing feature — outside this prototype'}
+            title={collapsed ? f.label : (f.source ? 'Existing feature — feeds data into Seating Arrangement' : 'Existing feature — outside this prototype')}
           >
             <span className="side-icon">{f.icon}</span>
-            <div className="side-text">
-              <span className="side-label">{f.label}</span>
-              <span className="side-sub">{f.sub}</span>
-            </div>
-            {f.source && <span className="side-source">source</span>}
+            {!collapsed && (
+              <>
+                <div className="side-text">
+                  <span className="side-label">{f.label}</span>
+                  <span className="side-sub">{f.sub}</span>
+                </div>
+                {f.source && <span className="side-source">source</span>}
+              </>
+            )}
           </div>
         ))}
       </nav>
 
-      <div className="sidebar-section-label" style={{marginTop:18}}>New</div>
+      {!collapsed && <div className="sidebar-section-label" style={{marginTop:18}}>New</div>}
       <nav className="sidebar-nav">
-        <div className="side-item side-active">
+        <button className="side-item side-active" onClick={() => onNavigate('dashboard')} title={collapsed ? 'Seating Arrangement' : ''}>
           <span className="side-icon">◆</span>
-          <div className="side-text">
-            <span className="side-label">Seating Arrangement</span>
-            <span className="side-sub">AI-assisted</span>
-          </div>
-          <span className="side-new">AI</span>
-        </div>
+          {!collapsed && (
+            <>
+              <div className="side-text">
+                <span className="side-label">Seating Arrangement</span>
+                <span className="side-sub">AI-assisted</span>
+              </div>
+              <span className="side-new">AI</span>
+            </>
+          )}
+        </button>
       </nav>
 
-      <div className="sidebar-foot">
-        <div className="sf-label">Active wedding</div>
-        <div className="sf-name">{WEDDING.name}</div>
-        <div className="sf-date">{WEDDING.venue} · {WEDDING.date}</div>
-      </div>
+      {!collapsed && (
+        <div className="sidebar-foot">
+          <div className="sf-label">Active wedding</div>
+          <div className="sf-name">{WEDDING.name}</div>
+          <div className="sf-date">{WEDDING.venue} · {WEDDING.date}</div>
+        </div>
+      )}
     </aside>
   );
 }
 
-// ─── Top Bar (seating sub-flow) ───────────────────────────────────────────────
-const FLOW = [
-  { key: 'dashboard',   label: 'Overview' },
-  { key: 'constraints', label: 'Constraints' },
-  { key: 'canvas',      label: 'Review & Edit' },
-  { key: 'approved',    label: 'Published' },
+// ─── Workflow Stepper ─────────────────────────────────────────────────────────
+// The seating workflow begins when the planner clicks "Auto-Arrange" on the
+// overview. The stepper lives inside the workflow (not the global header) and
+// tracks the three working steps. `generating` is a transient loader between
+// Constraints and Review, so it reads as the Review step in progress.
+const WORKFLOW = [
+  { key: 'constraints', label: 'Constraints',   desc: 'Define the rules' },
+  { key: 'canvas',      label: 'Review & Edit',  desc: 'Adjust the draft' },
+  { key: 'approved',    label: 'Publish',        desc: 'Save to seating chart' },
 ];
+const WORKFLOW_SCREENS = ['constraints', 'generating', 'canvas', 'approved'];
 
-function TopNav({ screen, onNavigate }) {
-  const active = FLOW.findIndex(s => s.key === screen);
+function WorkflowStepper({ screen, onNavigate }) {
+  // Map the transient generating screen onto the Review step.
+  const activeKey = screen === 'generating' ? 'canvas' : screen;
+  const active = WORKFLOW.findIndex(s => s.key === activeKey);
 
   return (
-    <nav className="topnav">
-      <div className="topnav-context">
-        <span className="ctx-feature">Seating Arrangement</span>
-        <span className="ctx-sep">/</span>
-        <span className="ctx-current">{FLOW[active]?.label}</span>
+    <div className="wf-stepper">
+      <div className="wf-eyebrow">
+        <button className="wf-exit" onClick={() => onNavigate('dashboard')}>‹ Overview</button>
+        <span className="wf-eyebrow-label">✦ Seating workflow</span>
+        <span className="wf-progress">Step {active + 1} of {WORKFLOW.length}</span>
       </div>
-      <div className="topnav-steps">
-        {FLOW.map((s, i) => {
-          const clickable = true;
+      <div className="wf-steps">
+        {WORKFLOW.map((s, i) => {
+          const state = i < active ? 'done' : i === active ? 'active' : 'future';
           return (
-            <button
-              key={s.key}
-              className={`nav-step ${i === active ? 'active' : ''} ${i < active ? 'done' : ''} ${clickable ? 'clickable' : ''}`}
-              onClick={() => clickable && onNavigate(s.key)}
-              disabled={!clickable}
-            >
-              <span className="nav-dot">{i < active ? '✓' : i + 1}</span>
-              <span className="nav-label">{s.label}</span>
-              {i < FLOW.length - 1 && <span className="nav-line" />}
-            </button>
+            <div key={s.key} className="wf-step-wrap">
+              <button className={`wf-step wf-${state}`} onClick={() => onNavigate(s.key)}>
+                <span className="wf-step-num">{i < active ? '✓' : i + 1}</span>
+                <span className="wf-step-body">
+                  <span className="wf-step-label">{s.label}</span>
+                  <span className="wf-step-desc">{s.desc}</span>
+                </span>
+              </button>
+              {i < WORKFLOW.length - 1 && <span className={`wf-connector${i < active ? ' wf-connector-done' : ''}`} />}
+            </div>
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 }
 
@@ -324,11 +400,12 @@ function ConstraintCapture({ onGenerate, onBack }) {
     const text = custom.trim();
     if (!text) return;
     // Always add — start in ERROR state so the planner must pick a rule type.
-    // Pre-fill any guests matched by name so they only need to pick the type.
-    const rule = { type: 'ERROR', guests: matchGuestsByName(text) };
+    // Confident name matches are pre-filled; ambiguous ones are surfaced for
+    // the planner to confirm rather than silently guessing.
+    const { confident, ambiguous } = parseGuestNames(text);
+    const rule = { type: 'ERROR', guests: confident, ambiguous };
     setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
-    setCustomError('');
   };
   const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
   const updateCustomRule = (id, rule) => setCustomList(prev => prev.map(c => c.id === id ? { ...c, rule } : c));
@@ -392,6 +469,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
             />
             <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
           </div>
+          <div className="custom-hint">Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.</div>
         </div>
 
         {totalCount > 0 && (
@@ -412,8 +490,11 @@ function ConstraintCapture({ onGenerate, onBack }) {
                 <button className="remove-btn" onClick={() => toggle(c.id)}>×</button>
               </div>
             ))}
-            {customList.map(c => (
-              <div key={c.id} className={`added-item${c.rule.type === 'ERROR' ? ' added-item-error' : ''}`}>
+            {customList.map(c => {
+              const hasAmbiguous = (c.rule.ambiguous || []).length > 0;
+              const cls = c.rule.type === 'ERROR' ? ' added-item-error' : hasAmbiguous ? ' added-item-warn' : '';
+              return (
+              <div key={c.id} className={`added-item${cls}`}>
                 <div className="added-main">
                   <span className="added-text">✎ {c.text}</span>
                   <EditableRuleRow
@@ -423,7 +504,8 @@ function ConstraintCapture({ onGenerate, onBack }) {
                 </div>
                 <button className="remove-btn" onClick={() => removeCustom(c.id)}>×</button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -706,10 +788,16 @@ export default function App() {
   const go = (s) => setScreen(s);
   return (
     <div className="app">
-      <ProductSidebar />
+      <ProductSidebar onNavigate={go} />
       <div className="app-body">
-        <TopNav screen={screen} onNavigate={go} />
         <main className="app-main">
+          {WORKFLOW_SCREENS.includes(screen) && (
+            <div className="workflow-bar">
+              <div className="workflow-bar-inner">
+                <WorkflowStepper screen={screen} onNavigate={go} />
+              </div>
+            </div>
+          )}
           {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
           {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
           {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}

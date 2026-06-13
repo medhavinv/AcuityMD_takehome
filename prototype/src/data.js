@@ -87,7 +87,7 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c5",
-    text: "Vegetarian meals near service — Patricia, Sarah, and Tom need easy access to service staff",
+    text: "Seat Patricia, Sarah & Tom near service — they have vegetarian meals and need easy staff access",
     category: "meal",
     icon: "🥗",
     rule: { type: "ZONE_PREFER", guests: [3, 11, 16], zone: "Near service" },

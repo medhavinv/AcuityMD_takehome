@@ -294,9 +294,18 @@ function WorkflowStepper({ screen, onNavigate }) {
       <div className="wf-steps">
         {WORKFLOW.map((s, i) => {
           const state = i < active ? 'done' : i === active ? 'active' : 'future';
+          // Future steps aren't navigable — you reach Review by generating a
+          // draft and Publish via the explicit Publish button, so the workflow
+          // can't be skipped past the human-in-the-loop review.
+          const navigable = state !== 'future';
           return (
             <div key={s.key} className="wf-step-wrap">
-              <button className={`wf-step wf-${state}`} onClick={() => onNavigate(s.key)}>
+              <button
+                className={`wf-step wf-${state}`}
+                onClick={navigable ? () => onNavigate(s.key) : undefined}
+                disabled={!navigable}
+                title={navigable ? '' : 'Complete the previous step first'}
+              >
                 <span className="wf-step-num">{i < active ? '✓' : i + 1}</span>
                 <span className="wf-step-body">
                   <span className="wf-step-label">{s.label}</span>

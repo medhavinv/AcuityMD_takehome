@@ -356,7 +356,6 @@
 .remove-btn { background:none; color:var(--gray-md); font-size:16px; line-height:1; padding:0 4px; flex-shrink:0; }
 .remove-btn:hover { color:var(--red); }
 
-.generate-footer { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .info-note { display:flex; gap:8px; font-size:12px; color:var(--gray-md); line-height:1.5; flex:1; }
 .info-icon { font-size:14px; flex-shrink:0; color:var(--sage); margin-top:1px; }
 

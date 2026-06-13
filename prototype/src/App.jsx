@@ -423,7 +423,8 @@ function ConstraintCapture({ onGenerate, onBack }) {
   const totalCount = added.length + customList.length;
 
   return (
-    <div className="screen two-col">
+    <div className="screen">
+      <div className="two-col">
       {/* Left: guest list */}
       <div className="col-left">
         <div className="panel-hd" style={{marginBottom:12}}><h3>Guest List</h3><span className="badge">{GUESTS.length}</span></div>
@@ -520,13 +521,15 @@ function ConstraintCapture({ onGenerate, onBack }) {
           </div>
         )}
 
-        <div className="generate-footer">
-          <div className="info-note">
-            <span className="info-icon">ℹ</span>
-            AI uses your guest list, RSVPs, table capacities, and constraints. You review and approve before anything is shared.
-          </div>
-          <button className="btn-primary btn-lg" onClick={() => onGenerate(added)}>Generate Seating Draft →</button>
+      </div>
+      </div>
+
+      <div className="dash-bottom-bar">
+        <div className="info-note">
+          <span className="info-icon">ℹ</span>
+          AI uses your guest list, RSVPs, table capacities, and constraints. You review and approve before anything is shared.
         </div>
+        <button className="btn-primary btn-lg btn-full" onClick={() => onGenerate(added)}>Generate Seating Draft →</button>
       </div>
     </div>
   );

@@ -735,7 +735,6 @@ function SeatingCanvas({ onApprove, onBack }) {
                     {c.guests.map(id => <span key={id} className="guest-tag">{guest(id)?.name.split(' ')[0]}</span>)}
                   </div>
                   <div style={{display:'flex',gap:8,marginTop:10}}>
-                    <button className="btn-sm btn-outline">Move guests</button>
                     <button className="btn-sm btn-ghost" onClick={() => dismiss(c.id)}>Dismiss</button>
                   </div>
                 </div>
@@ -749,7 +748,9 @@ function SeatingCanvas({ onApprove, onBack }) {
                     <div key={c.id} className="recap-row">
                       <span>{c.icon}</span>
                       <div className="recap-body">
-                        <span className={`rule-badge ${meta.cls}`} data-tooltip={meta.tip}>{meta.label}</span>
+                        <Tooltip text={meta.tip}>
+                          <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+                        </Tooltip>
                         <span className="recap-text">
                           {c.rule.guests.map(id => guest(id)?.name.split(' ')[0]).join(', ')}
                           {c.rule.zone ? ` · ${c.rule.zone}` : ''}

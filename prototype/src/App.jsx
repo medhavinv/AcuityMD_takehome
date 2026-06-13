@@ -509,7 +509,13 @@ function ConstraintCapture({ onGenerate, onBack }) {
         </div>
 
         <div className="custom-block">
-          <div className="suggestions-label"><span className="ai-spark">✦</span> Custom constraint <span className="ai-label">AI parses guest names</span></div>
+          <div className="suggestions-label">
+            <span className="ai-spark">✦</span> Custom constraint
+            <Tooltip text="Supported rules: Keep apart (two guests, different tables) · Seat together (group, same table) · Keep away (guests away from speakers, bar, or service). Guest names are matched to your list.">
+              <span className="info-icon-sm">ℹ</span>
+            </Tooltip>
+            <span className="ai-label">AI parses guest names</span>
+          </div>
           <div style={{display:'flex',gap:8}}>
             <textarea
               className="constraint-input"

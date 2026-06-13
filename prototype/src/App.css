@@ -373,6 +373,7 @@
 .info-note.info-note-warn { color:#B45309; font-weight:500; }
 .info-note.info-note-warn .info-icon { color:#D97706; }
 .info-icon { font-size:14px; flex-shrink:0; color:var(--sage); margin-top:1px; }
+.info-icon-sm { font-size:11px; color:var(--gray-md); cursor:default; opacity:.7; vertical-align:middle; }
 
 /* ── Generating ── */
 .center-screen { display:flex; align-items:center; justify-content:center; }

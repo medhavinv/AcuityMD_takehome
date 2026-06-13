@@ -818,9 +818,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
               <input type="checkbox" checked={includePending} onChange={e => setIncludePending(e.target.checked)} />
               Show pending guests
             </label>
-            <button className="btn-outline" onClick={onBack}>← Back</button>
-            <button className="btn-outline">↺ Regenerate</button>
-            <button className="btn-primary" onClick={() => {
+            <button className="btn-outline" onClick={onBack}>← Back</button>            <button className="btn-primary" onClick={() => {
               const seated = Object.values(assignment).flat().length;
               const open = active.length;
               onApprove({ guestsSeated: seated, openConflicts: open });

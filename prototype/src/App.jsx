@@ -554,7 +554,7 @@ function Generating({ onDone }) {
       const t = setTimeout(onDone, 800);
       return () => clearTimeout(t);
     }
-  }, [step]);
+  }, [step, onDone]);
 
   return (
     <div className="screen center-screen">
@@ -680,7 +680,11 @@ function SeatingCanvas({ onApprove, onBack }) {
             </label>
             <button className="btn-outline" onClick={onBack}>← Back</button>
             <button className="btn-outline">↺ Regenerate</button>
-            <button className="btn-primary" onClick={onApprove}>✦ Publish to Seating Chart →</button>
+            <button className="btn-primary" onClick={() => {
+              const seated = Object.values(assignment).flat().length;
+              const open = active.length;
+              onApprove({ guestsSeated: seated, openConflicts: open });
+            }}>✦ Publish to Seating Chart →</button>
           </div>
         </div>
 
@@ -773,7 +777,7 @@ function SeatingCanvas({ onApprove, onBack }) {
 }
 
 // ─── Approved ─────────────────────────────────────────────────────────────────
-function Approved({ onBack }) {
+function Approved({ onBack, guestsSeated, openConflicts }) {
   return (
     <div className="screen center-screen">
       <div className="approved-card">
@@ -786,7 +790,7 @@ function Approved({ onBack }) {
           <button className="btn-outline">Print Chart</button>
         </div>
         <div className="approved-stats">
-          {[['24','guests seated'],['6','tables arranged'],['0','conflicts open']].map(([v,l]) => (
+          {[[String(guestsSeated),'guests seated'],[String(TABLES.length),'tables arranged'],[String(openConflicts),'conflicts open']].map(([v,l]) => (
             <div key={l} className="apstat"><strong>{v}</strong><span>{l}</span></div>
           ))}
         </div>
@@ -799,6 +803,7 @@ function Approved({ onBack }) {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('dashboard');
+  const [publishStats, setPublishStats] = useState({ guestsSeated: 0, openConflicts: 0 });
   const go = (s) => setScreen(s);
   return (
     <div className="app">
@@ -815,8 +820,8 @@ export default function App() {
           {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
           {screen === 'constraints' && <ConstraintCapture onGenerate={() => go('generating')} onBack={() => go('dashboard')} />}
           {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
-          {screen === 'canvas'      && <SeatingCanvas onApprove={() => go('approved')} onBack={() => go('constraints')} />}
-          {screen === 'approved'    && <Approved onBack={() => go('canvas')} />}
+          {screen === 'canvas'      && <SeatingCanvas onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
+          {screen === 'approved'    && <Approved onBack={() => go('canvas')} guestsSeated={publishStats.guestsSeated} openConflicts={publishStats.openConflicts} />}
         </main>
       </div>
     </div>

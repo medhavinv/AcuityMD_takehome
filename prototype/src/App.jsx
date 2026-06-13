@@ -378,7 +378,6 @@ function Dashboard({ onStart }) {
               </div>
             ))}
           </div>
-          </div>
         </div>
       </div>
 

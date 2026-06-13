@@ -53,9 +53,13 @@ export const TABLES = [
   { id: 6, name: "Table 6 — Kids", capacity: 6, nearSpeakers: false, nearBar: false, nearService: true },
 ];
 
-// Each constraint resolves to a structured rule bound to specific guest IDs.
-// MVP scoping: rules bind to guests BY NAME (guest IDs), not by attribute/quality.
-// Meal + mobility come free from existing RSVP data; true attribute tagging is Phase 2.
+// Each constraint resolves to one atomic rule bound to specific guest IDs.
+// MVP scoping:
+//   • Rules bind to guests BY NAME (guest IDs), not by attribute/quality.
+//   • Placement is enforced as avoidance only (ZONE_AVOID) — positive "seat
+//     near" preferences are out of scope. Compound constraints are split into
+//     separate rules so each is independently editable.
+//   • Meal + mobility come free from RSVP data; true attribute tagging is Phase 2.
 export const HARDCODED_CONSTRAINTS = [
   {
     id: "c1",
@@ -73,10 +77,10 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c3",
-    text: "Seat Sarah, Mike, Jake & Chloe near the bar — they're college friends and want to be together",
+    text: "Seat Sarah, Mike, Jake & Chloe together — they're college friends and want to be at the same table",
     category: "preference",
-    icon: "🍸",
-    rule: { type: "SEAT_TOGETHER", guests: [11, 12, 13, 14], zone: "Near bar" },
+    icon: "🎓",
+    rule: { type: "SEAT_TOGETHER", guests: [11, 12, 13, 14] },
   },
   {
     id: "c4",
@@ -87,17 +91,17 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c5",
-    text: "Seat Patricia, Sarah & Tom near service — they have vegetarian meals and need easy staff access",
-    category: "meal",
-    icon: "🥗",
-    rule: { type: "ZONE_PREFER", guests: [3, 11, 16], zone: "Near service" },
+    text: "Seat Oliver, Lily & Noah together — they're the youngest guests",
+    category: "preference",
+    icon: "🧒",
+    rule: { type: "SEAT_TOGETHER", guests: [18, 19, 20] },
   },
   {
     id: "c6",
-    text: "Seat Oliver, Lily & Noah together at Table 6, away from the bar — they're the youngest guests",
-    category: "preference",
-    icon: "🧒",
-    rule: { type: "SEAT_TOGETHER", guests: [18, 19, 20], zone: "Away from bar" },
+    text: "Keep Oliver, Lily & Noah away from the bar — too close to the noise and the alcohol",
+    category: "accessibility",
+    icon: "🚸",
+    rule: { type: "ZONE_AVOID", guests: [18, 19, 20], zone: "Away from bar" },
   },
 ];
 

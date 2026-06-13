@@ -35,8 +35,7 @@ function Tooltip({ text, children }) {
 const RULE_LABELS = {
   KEEP_APART:    { label: '✕ Keep apart',    cls: 'rule-apart',    tip: 'These guests will not be placed at the same table.' },
   SEAT_TOGETHER: { label: '⊕ Seat together', cls: 'rule-together', tip: 'These guests will be placed at the same table.' },
-  ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone',     tip: 'These guests will be kept away from the specified zone (e.g. speakers, bar).' },
-  ZONE_PREFER:   { label: '◎ Place near',    cls: 'rule-zone',     tip: 'These guests will be prioritised for placement near the specified zone (e.g. service, bar).' },
+  ZONE_AVOID:    { label: '↗ Keep away',     cls: 'rule-zone',     tip: 'These guests will be kept away from the specified zone (speakers, bar, or service).' },
   CUSTOM:        { label: '✎ Custom rule',   cls: 'rule-custom',   tip: 'Rule parsed from your note. Matched guests shown — edit the text if anyone is missing.' },
   ERROR:         { label: '⚠ Unknown',       cls: 'rule-error',    tip: 'Could not parse a rule. Select a rule type and add the guests it applies to.' },
 };
@@ -110,7 +109,15 @@ function EditableRuleRow({ rule, onChange }) {
     update({ ...localRule, guests: [...localRule.guests, id] });
     e.target.value = '';
   };
-  const setType = (e) => update({ ...localRule, type: e.target.value });
+  const setType = (e) => {
+    const type = e.target.value;
+    // Keep-away rules need a zone; default one in when switching to ZONE_AVOID,
+    // and drop any dangling zone when switching to a relationship rule.
+    const zone = type === 'ZONE_AVOID'
+      ? (AVOID_ZONES.includes(localRule.zone) ? localRule.zone : AVOID_ZONES[0])
+      : undefined;
+    update({ ...localRule, type, zone });
+  };
   // Planner picks which guest a token referred to → pin it, clear the group.
   const resolveAmbiguous = (token, id) => update({
     ...localRule,
@@ -140,6 +147,17 @@ function EditableRuleRow({ rule, onChange }) {
         </select>
       </Tooltip>
 
+      {localRule.type === 'ZONE_AVOID' && (
+        <select
+          className="rule-zone-tag rule-zone-select"
+          value={localRule.zone || AVOID_ZONES[0]}
+          onChange={e => update({ ...localRule, zone: e.target.value })}
+          title="Which zone to keep these guests away from"
+        >
+          {AVOID_ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+        </select>
+      )}
+
       {localRule.guests.length > 0 ? (
         localRule.guests.map(id => (
           <span key={id} className="rule-guest rule-guest-editable">
@@ -151,8 +169,6 @@ function EditableRuleRow({ rule, onChange }) {
       ) : (
         <span className="rule-nomatch">⚠ No guests — add one below</span>
       )}
-
-      {localRule.zone && <span className="rule-zone-tag">{localRule.zone}</span>}
 
       {unaddedGuests.length > 0 && (
         <select className="rule-add-guest" defaultValue="" onChange={addGuest}>
@@ -436,7 +452,10 @@ function ConstraintCapture({ onGenerate, onBack }) {
   // A rule is incomplete if it has no rule type, binds to no guests, or still
   // has an unconfirmed ambiguous name — the same states the rows flag with ⚠.
   const ruleIsValid = (rule) =>
-    rule.type !== 'ERROR' && rule.guests.length > 0 && (rule.ambiguous || []).length === 0;
+    rule.type !== 'ERROR' &&
+    rule.guests.length > 0 &&
+    (rule.ambiguous || []).length === 0 &&
+    (rule.type !== 'ZONE_AVOID' || !!rule.zone);
   const invalidCount = [
     ...HARDCODED_CONSTRAINTS.filter(c => added.includes(c.id)).map(getRule),
     ...customList.map(c => c.rule),
@@ -665,16 +684,16 @@ function TableCard({ table, guestIds, conflicts, onDragStart, onDrop }) {
 // MVP capability, honestly scoped:
 //   • KEEP_APART / SEAT_TOGETHER  → same-table relationships (hard, enforced)
 //   • ZONE_AVOID                  → keep guests out of a zone (hard, enforced)
-//   • ZONE_PREFER                 → soft preference, surfaced in rationale only
-// Zones map to the table attributes we actually model (bar / speakers / service).
+// Positive "place near" preferences are intentionally out of scope — placement
+// is only enforced as avoidance. Zones map to table attributes we actually model.
 const ZONE_MAP = {
-  'near bar':           { attr: 'nearBar',      want: true  },
   'away from bar':      { attr: 'nearBar',      want: false },
-  'near speakers':      { attr: 'nearSpeakers', want: true  },
   'away from speakers': { attr: 'nearSpeakers', want: false },
-  'near service':       { attr: 'nearService',  want: true  },
+  'away from service':  { attr: 'nearService',  want: false },
 };
 const zoneSpec = (zone) => ZONE_MAP[(zone || '').trim().toLowerCase()];
+// Supported avoidance zones, surfaced as options when editing a keep-away rule.
+const AVOID_ZONES = ['Away from speakers', 'Away from bar', 'Away from service'];
 
 const firstName = (id) => guest(id)?.name.split(' ')[0] || `#${id}`;
 const nameList = (ids) => {
@@ -734,13 +753,10 @@ function detectConflicts(rules, assignment, tables) {
           guests: seated,
           table: tableOf[seated[0]],
         });
-      } else {
-        flagZone(rule, seated);  // together already — check any attached zone
       }
     } else if (rule.type === 'ZONE_AVOID') {
       flagZone(rule, seated);
     }
-    // ZONE_PREFER is intentionally soft — never raised as a blocking conflict.
   }
   return out;
 }

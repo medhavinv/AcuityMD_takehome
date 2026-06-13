@@ -171,7 +171,7 @@ function ProductSidebar() {
               <span className="side-label">{f.label}</span>
               <span className="side-sub">{f.sub}</span>
             </div>
-            {f.source && <span className="side-source">↓ data</span>}
+            {f.source && <span className="side-source">source</span>}
           </div>
         ))}
       </nav>
@@ -264,7 +264,7 @@ function Dashboard({ onStart }) {
       <div className="dash-panels two">
         <div className="panel">
           <div className="panel-hd">
-            <div className="panel-hd-titled"><h3>Guests</h3><span className="panel-src">↓ from Guest List</span></div>
+            <div className="panel-hd-titled"><h3>Guests</h3><span className="panel-src">via Guest List</span></div>
             <div className="panel-meta"><span className="badge">{GUESTS.filter(g=>g.rsvp==='confirmed').length} confirmed</span><span className="badge-muted">{GUESTS.filter(g=>g.rsvp==='pending').length} pending</span></div>
           </div>
           <div className="list-scroll">
@@ -285,7 +285,7 @@ function Dashboard({ onStart }) {
 
         <div className="panel">
           <div className="panel-hd">
-            <div className="panel-hd-titled"><h3>Tables</h3><span className="panel-src">↓ from Seating Charts</span></div>
+            <div className="panel-hd-titled"><h3>Tables</h3><span className="panel-src">via Seating Charts</span></div>
             <div className="panel-meta"><span className="badge">{TABLES.length} tables</span><span className="badge-muted">8 seats avg</span></div>
           </div>
           <div className="list-scroll">

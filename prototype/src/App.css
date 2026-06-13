@@ -47,7 +47,11 @@
 .side-new { font-size:9px; font-weight:700; letter-spacing:.4px; background:var(--sage); color:var(--white); padding:2px 6px; border-radius:4px; }
 .side-source { font-size:9px; font-weight:600; color:var(--gray-md); background:var(--cream); border:1px solid var(--gray-lt); padding:2px 5px; border-radius:4px; white-space:nowrap; }
 .panel-hd-titled { display:flex; align-items:baseline; gap:8px; }
-.panel-src { font-size:11px; font-weight:500; color:var(--gray-md); }
+.panel-src {
+  font-size:10px; font-weight:600; color:var(--gray-md);
+  background:var(--cream); border:1px solid var(--gray-lt);
+  border-radius:4px; padding:1px 6px; letter-spacing:.2px;
+}
 .panel-meta { display:flex; align-items:center; gap:6px; }
 .badge-muted { background:var(--cream); color:var(--gray-md); border:1px solid var(--gray-lt); font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; }
 /* Fixed-position tooltip — never clipped by overflow:hidden ancestors */

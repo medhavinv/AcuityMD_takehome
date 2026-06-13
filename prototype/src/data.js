@@ -18,8 +18,8 @@ export const GUESTS = [
   { id: 8,  name: "Frank Walsh",     relation: "Groom's Grandfather",         meal: "Standard",    mobility: true,  rsvp: "confirmed", table: null },
 
   // Divorced / conflict — confirmed
-  { id: 9,  name: "Uncle Rob Chen",  relation: "Bride's Uncle",               meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
-  { id: 10, name: "Aunt Lisa Chen",  relation: "Bride's Aunt (Rob's ex)",     meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 9,  name: "Rob Chen",        relation: "Bride's Uncle",               meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 10, name: "Lisa Chen",       relation: "Bride's Aunt (Rob's ex)",     meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
   // College friends — mixed
   { id: 11, name: "Sarah Kim",       relation: "College Friend (Bride)",      meal: "Vegetarian",  mobility: false, rsvp: "confirmed", table: null },
@@ -70,7 +70,7 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c2",
-    text: "Don't seat Uncle Rob next to Aunt Lisa — they separated badly, keep them at least 2 tables apart",
+    text: "Don't seat Rob and Lisa Chen together — they separated badly and need to be at different tables",
     category: "conflict",
     icon: "🚫",
     rule: { type: "KEEP_APART", guests: [9, 10] },

@@ -26,11 +26,12 @@ const matchGuestsByName = (text) => {
   ).map(g => g.id);
 };
 
+// Read-only rule row — used in canvas sidebar recap
 function RuleRow({ rule }) {
   const meta = RULE_LABELS[rule.type] || RULE_LABELS.CUSTOM;
   return (
     <div className="rule-row">
-      <span className={`rule-badge ${meta.cls}`} title={meta.tip}>{meta.label}</span>
+      <span className={`rule-badge ${meta.cls}`} data-tooltip={meta.tip}>{meta.label}</span>
       {rule.guests.length > 0 ? (
         rule.guests.map(id => (
           <span key={id} className="rule-guest">
@@ -39,9 +40,66 @@ function RuleRow({ rule }) {
           </span>
         ))
       ) : (
-        <span className="rule-nomatch">⚠ No guests matched by name — name specific guests so the rule can be applied</span>
+        <span className="rule-nomatch">⚠ No guests matched</span>
       )}
       {rule.zone && <span className="rule-zone-tag">{rule.zone}</span>}
+    </div>
+  );
+}
+
+// Editable rule row — used in constraints "Added" list.
+// The planner can change rule type, remove guests, and add guests.
+// This is the human-in-the-loop step: confirm/correct what the AI parsed.
+function EditableRuleRow({ rule, onChange }) {
+  const [localRule, setLocalRule] = useState(rule);
+
+  const update = (updated) => { setLocalRule(updated); onChange(updated); };
+  const removeGuest = (id) => update({ ...localRule, guests: localRule.guests.filter(g => g !== id) });
+  const addGuest = (e) => {
+    const id = parseInt(e.target.value);
+    if (!id || localRule.guests.includes(id)) return;
+    update({ ...localRule, guests: [...localRule.guests, id] });
+    e.target.value = '';
+  };
+  const setType = (e) => update({ ...localRule, type: e.target.value });
+
+  const meta = RULE_LABELS[localRule.type] || RULE_LABELS.CUSTOM;
+  const unaddedGuests = GUESTS.filter(g => !localRule.guests.includes(g.id));
+
+  return (
+    <div className="rule-row editable-rule-row">
+      <select
+        className={`rule-badge rule-badge-select ${meta.cls}`}
+        value={localRule.type}
+        onChange={setType}
+        data-tooltip={meta.tip}
+        title=""
+      >
+        {Object.entries(RULE_LABELS).map(([k, v]) => (
+          <option key={k} value={k}>{v.label}</option>
+        ))}
+      </select>
+
+      {localRule.guests.length > 0 ? (
+        localRule.guests.map(id => (
+          <span key={id} className="rule-guest rule-guest-editable">
+            <span className="rule-guest-av">{guest(id)?.name[0]}</span>
+            {guest(id)?.name.split(' ').slice(0, 2).join(' ')}
+            <button className="rule-guest-remove" onClick={() => removeGuest(id)} title="Remove">×</button>
+          </span>
+        ))
+      ) : (
+        <span className="rule-nomatch">⚠ No guests — add one below</span>
+      )}
+
+      {localRule.zone && <span className="rule-zone-tag">{localRule.zone}</span>}
+
+      {unaddedGuests.length > 0 && (
+        <select className="rule-add-guest" defaultValue="" onChange={addGuest}>
+          <option value="" disabled>＋ guest</option>
+          {unaddedGuests.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
+      )}
     </div>
   );
 }
@@ -93,10 +151,6 @@ function ProductSidebar() {
         </div>
       </nav>
 
-      <div className="sidebar-hint">
-        Seating Arrangement is the new AI tab. It pulls the guest list and table layout from the existing tabs — no re-entry needed.
-      </div>
-
       <div className="sidebar-foot">
         <div className="sf-label">Active wedding</div>
         <div className="sf-name">{WEDDING.name}</div>
@@ -112,7 +166,7 @@ const FLOW = [
   { key: 'constraints', label: 'Constraints' },
   { key: 'generating', label: 'Generating' },
   { key: 'canvas', label: 'Review & Edit' },
-  { key: 'approved', label: 'Approved' },
+  { key: 'approved', label: 'Published' },
 ];
 
 function TopNav({ screen, onNavigate }) {
@@ -224,18 +278,28 @@ function Dashboard({ onStart }) {
 // ─── Constraint Capture ───────────────────────────────────────────────────────
 function ConstraintCapture({ onGenerate, onBack }) {
   const [added, setAdded] = useState([]);
+  const [editedRules, setEditedRules] = useState({});  // overrides for hardcoded constraint rules
   const [custom, setCustom] = useState('');
+  const [customError, setCustomError] = useState('');
   const [customList, setCustomList] = useState([]);
 
   const toggle = (id) => setAdded(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const getRule = (c) => editedRules[c.id] || c.rule;
   const addCustom = () => {
     const text = custom.trim();
     if (!text) return;
-    const rule = { type: 'CUSTOM', guests: matchGuestsByName(text) };
+    const matched = matchGuestsByName(text);
+    if (matched.length === 0) {
+      setCustomError('No guest names recognised. Mention guests by first name (e.g. "Margaret", "Uncle Rob") so the rule can be applied.');
+      return;
+    }
+    setCustomError('');
+    const rule = { type: 'CUSTOM', guests: matched };
     setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
   };
   const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
+  const updateCustomRule = (id, rule) => setCustomList(prev => prev.map(c => c.id === id ? { ...c, rule } : c));
   const totalCount = added.length + customList.length;
 
   return (
@@ -286,24 +350,31 @@ function ConstraintCapture({ onGenerate, onBack }) {
           <div className="suggestions-label">Custom constraint</div>
           <div style={{display:'flex',gap:8}}>
             <textarea
-              className="constraint-input"
+              className={`constraint-input${customError ? ' constraint-input-error' : ''}`}
               placeholder="e.g. Keep the O'Brien family together — they flew in from Ireland..."
               value={custom}
-              onChange={e => setCustom(e.target.value)}
+              onChange={e => { setCustom(e.target.value); setCustomError(''); }}
               rows={3}
             />
             <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
           </div>
+          {customError && <div className="constraint-error">⚠ {customError}</div>}
         </div>
 
         {totalCount > 0 && (
           <div className="added-block">
-            <div className="suggestions-label">Added ({totalCount}) — each resolves to a rule the system can execute</div>
+            <div className="suggestions-label">
+              Added ({totalCount})
+              <span className="edit-hint"> — edit rule type or guests before generating</span>
+            </div>
             {HARDCODED_CONSTRAINTS.filter(c => added.includes(c.id)).map(c => (
               <div key={c.id} className="added-item">
                 <div className="added-main">
-                  <span>{c.icon} {c.text}</span>
-                  <RuleRow rule={c.rule} />
+                  <span className="added-text">{c.icon} {c.text}</span>
+                  <EditableRuleRow
+                    rule={getRule(c)}
+                    onChange={(updated) => setEditedRules(prev => ({ ...prev, [c.id]: updated }))}
+                  />
                 </div>
                 <button className="remove-btn" onClick={() => toggle(c.id)}>×</button>
               </div>
@@ -311,8 +382,11 @@ function ConstraintCapture({ onGenerate, onBack }) {
             {customList.map(c => (
               <div key={c.id} className="added-item">
                 <div className="added-main">
-                  <span>✎ {c.text}</span>
-                  <RuleRow rule={c.rule} />
+                  <span className="added-text">✎ {c.text}</span>
+                  <EditableRuleRow
+                    rule={c.rule}
+                    onChange={(updated) => updateCustomRule(c.id, updated)}
+                  />
                 </div>
                 <button className="remove-btn" onClick={() => removeCustom(c.id)}>×</button>
               </div>
@@ -526,7 +600,7 @@ function SeatingCanvas({ onApprove, onBack }) {
                     <div key={c.id} className="recap-row">
                       <span>{c.icon}</span>
                       <div className="recap-body">
-                        <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+                        <span className={`rule-badge ${meta.cls}`} data-tooltip={meta.tip}>{meta.label}</span>
                         <span className="recap-text">
                           {c.rule.guests.map(id => guest(id)?.name.split(' ')[0]).join(', ')}
                           {c.rule.zone ? ` · ${c.rule.zone}` : ''}

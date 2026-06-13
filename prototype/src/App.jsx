@@ -812,6 +812,22 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
           </div>
         )}
 
+        <div className="canvas-legend">
+          <span className="legend-label">Legend</span>
+          <span className="legend-group">
+            <span className="legend-group-label">Meal</span>
+            <span className="legend-item"><span className="seat-meal pill-standard" /> Standard</span>
+            <span className="legend-item"><span className="seat-meal pill-vegetarian" /> Vegetarian</span>
+            <span className="legend-item"><span className="seat-meal pill-kids" /> Kids</span>
+          </span>
+          <span className="legend-sep" />
+          <span className="legend-group">
+            <span className="legend-group-label">Seat</span>
+            <span className="legend-item"><span className="legend-swatch legend-pending" /> Pending RSVP</span>
+            <span className="legend-item"><span className="legend-swatch legend-flagged" /> In conflict</span>
+          </span>
+        </div>
+
         <div className="tables-grid">
           {TABLES.map(t => (
             <TableCard

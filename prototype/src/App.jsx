@@ -340,7 +340,7 @@ function Dashboard({ onStart }) {
           <span className="how-arrow">→</span>
           <span className="how-strip-step"><b>2</b> AI drafts a chart & flags conflicts</span>
           <span className="how-arrow">→</span>
-          <span className="how-strip-step"><b>3</b> You edit, then approve before sharing</span>
+          <span className="how-strip-step"><b>3</b> You review, edit & publish the chart</span>
         </div>
       </div>
 

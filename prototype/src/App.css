@@ -274,8 +274,11 @@
 .dash-bottom-bar {
   margin-top:20px; padding:20px 24px; background:var(--white);
   border:1px solid var(--gray-lt); border-radius:var(--r); box-shadow:var(--sh);
-  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  display:flex; align-items:center; justify-content:flex-end; gap:18px;
 }
+/* Keep the hint sized to its content so it reads as a unit next to the button */
+.dash-bottom-bar .info-note,
+.dash-bottom-bar .dash-bottom-hint { flex:0 1 auto; text-align:right; }
 .dash-bottom-hint { font-size:13.5px; color:var(--gray-dk); }
 .btn-full { width:auto; min-width:220px; }
 .panel {

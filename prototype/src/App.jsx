@@ -206,7 +206,7 @@ function ProductSidebar({ onNavigate }) {
         {!collapsed && (
           <span className="brand-wrap">
             <span className="brand-mark">◆</span>
-            <span className="brand-name">WedSeat</span>
+            <span className="brand-name">EverAfterPlan</span>
           </span>
         )}
         <button

@@ -1,8 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { WEDDING, GUESTS, TABLES, HARDCODED_CONSTRAINTS, CONFLICTS, RATIONALE } from './data';
 import './App.css';
 
 const guest = (id) => GUESTS.find(g => g.id === id);
+
+// Fixed-position tooltip — immune to overflow:hidden on any ancestor container.
+function Tooltip({ text, children }) {
+  const [rect, setRect] = useState(null);
+  const ref = useRef();
+  return (
+    <span
+      ref={ref}
+      className="tt-wrap"
+      onMouseEnter={() => setRect(ref.current?.getBoundingClientRect())}
+      onMouseLeave={() => setRect(null)}
+    >
+      {children}
+      {rect && (
+        <div
+          className="tt-bubble"
+          style={{ left: rect.left + rect.width / 2, top: rect.top - 8 }}
+        >
+          {text}
+        </div>
+      )}
+    </span>
+  );
+}
 
 // ─── Structured rules ─────────────────────────────────────────────────────────
 // MVP: constraints bind to guests by NAME (resolved to guest IDs), not by
@@ -31,7 +55,9 @@ function RuleRow({ rule }) {
   const meta = RULE_LABELS[rule.type] || RULE_LABELS.CUSTOM;
   return (
     <div className="rule-row">
-      <span className={`rule-badge ${meta.cls}`} data-tooltip={meta.tip}>{meta.label}</span>
+      <Tooltip text={meta.tip}>
+        <span className={`rule-badge ${meta.cls}`}>{meta.label}</span>
+      </Tooltip>
       {rule.guests.length > 0 ? (
         rule.guests.map(id => (
           <span key={id} className="rule-guest">
@@ -68,17 +94,17 @@ function EditableRuleRow({ rule, onChange }) {
 
   return (
     <div className="rule-row editable-rule-row">
-      <select
-        className={`rule-badge rule-badge-select ${meta.cls}`}
-        value={localRule.type}
-        onChange={setType}
-        data-tooltip={meta.tip}
-        title=""
-      >
-        {Object.entries(RULE_LABELS).map(([k, v]) => (
-          <option key={k} value={k}>{v.label}</option>
-        ))}
-      </select>
+      <Tooltip text={meta.tip}>
+        <select
+          className={`rule-badge rule-badge-select ${meta.cls}`}
+          value={localRule.type}
+          onChange={setType}
+        >
+          {Object.entries(RULE_LABELS).filter(([k]) => k !== 'CUSTOM').map(([k, v]) => (
+            <option key={k} value={k}>{v.label}</option>
+          ))}
+        </select>
+      </Tooltip>
 
       {localRule.guests.length > 0 ? (
         localRule.guests.map(id => (
@@ -316,9 +342,10 @@ function ConstraintCapture({ onGenerate, onBack }) {
                 <div className="list-name">{g.name}</div>
                 <div className="list-sub">{g.relation}</div>
               </div>
-              {g.rsvp === 'pending' && <span className="pill pill-pending">Pending</span>}
-              {g.mobility && <span className="tag tag-mob" title="Accessibility need (from RSVP)">♿</span>}
-              <span className={`pill pill-${g.meal.toLowerCase().replace(/\s/g,'')}`}>{g.meal}</span>
+              {g.mobility && <span className="tag tag-mob" title="Accessibility need">♿</span>}
+              <span className={`pill ${g.rsvp === 'pending' ? 'pill-pending' : 'pill-confirmed'}`}>
+                {g.rsvp === 'pending' ? 'Pending' : 'Confirmed'}
+              </span>
             </div>
           ))}
         </div>

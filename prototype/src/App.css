@@ -50,18 +50,17 @@
 .panel-src { font-size:11px; font-weight:500; color:var(--gray-md); }
 .panel-meta { display:flex; align-items:center; gap:6px; }
 .badge-muted { background:var(--cream); color:var(--gray-md); border:1px solid var(--gray-lt); font-size:11px; font-weight:600; padding:2px 7px; border-radius:20px; }
-/* Custom tooltip — works everywhere, unlike native title */
-[data-tooltip] { position:relative; }
-[data-tooltip]::before {
-  content: attr(data-tooltip);
-  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+/* Fixed-position tooltip — never clipped by overflow:hidden ancestors */
+.tt-wrap { display:inline-flex; align-items:center; }
+.tt-bubble {
+  position:fixed; z-index:9999; pointer-events:none;
+  transform:translate(-50%, -100%);
   background:#1E1E1E; color:#fff; font-size:12px; font-weight:400; line-height:1.45;
   padding:7px 11px; border-radius:6px;
   width:max-content; max-width:220px; white-space:normal;
-  opacity:0; pointer-events:none; transition:opacity .15s; z-index:1000;
   text-transform:none; letter-spacing:0; font-style:normal;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
 }
-[data-tooltip]:hover::before { opacity:1; }
 .sidebar-hint { font-size:10.5px; color:var(--gray-md); line-height:1.5; background:var(--cream); border:1px dashed var(--gray-lt); border-radius:8px; padding:10px; margin-top:14px; }
 .sidebar-foot { margin-top:auto; border-top:1px solid var(--gray-lt); padding:14px 8px 4px; }
 .sf-label { font-size:10px; font-weight:700; color:var(--gray-md); text-transform:uppercase; letter-spacing:.5px; }
@@ -125,7 +124,8 @@
 .pill-standard { background:#E8F0FE; color:#3366CC; }
 .pill-vegetarian { background:#E6F4EA; color:#2D7D46; }
 .pill-kids { background:var(--amber-lt); color:var(--amber); }
-.pill-pending { background:#F3F4F6; color:#6B7280; border:1px dashed #9CA3AF; }
+.pill-pending   { background:#F3F4F6; color:#6B7280; border:1px dashed #9CA3AF; }
+.pill-confirmed { background:#DCFCE7; color:#15803D; }
 .tag { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; }
 .tag-bar { background:#EDE9FE; color:#6B21A8; }
 .tag-spk { background:#FEE2E2; color:#B91C1C; }

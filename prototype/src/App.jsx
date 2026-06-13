@@ -385,7 +385,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
           <div style={{display:'flex',gap:8}}>
             <textarea
               className="constraint-input"
-              placeholder="e.g. Keep the O'Brien family together — they flew in from Ireland..."
+              placeholder="e.g. Seat Grace and Henry together — they only know each other"
               value={custom}
               onChange={e => setCustom(e.target.value)}
               rows={3}

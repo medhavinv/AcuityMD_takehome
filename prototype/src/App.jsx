@@ -228,7 +228,7 @@ function Dashboard({ onStart }) {
         <div className="panel">
           <div className="panel-hd">
             <div className="panel-hd-titled"><h3>Guests</h3><span className="panel-src">↓ from Guest List</span></div>
-            <div className="panel-meta"><span className="badge">{GUESTS.filter(g=>g.rsvp==='confirmed').length} confirmed</span><span className="badge-muted">6 pending</span></div>
+            <div className="panel-meta"><span className="badge">{GUESTS.filter(g=>g.rsvp==='confirmed').length} confirmed</span><span className="badge-muted">{GUESTS.filter(g=>g.rsvp==='pending').length} pending</span></div>
           </div>
           <div className="list-scroll">
             {GUESTS.slice(0, 10).map(g => (
@@ -238,6 +238,7 @@ function Dashboard({ onStart }) {
                   <div className="list-name">{g.name}</div>
                   <div className="list-sub">{g.relation}</div>
                 </div>
+                {g.rsvp === 'pending' && <span className="pill pill-pending">Pending</span>}
                 <span className={`pill pill-${g.meal.toLowerCase().replace(/\s/g,'')}`}>{g.meal}</span>
               </div>
             ))}
@@ -315,6 +316,7 @@ function ConstraintCapture({ onGenerate, onBack }) {
                 <div className="list-name">{g.name}</div>
                 <div className="list-sub">{g.relation}</div>
               </div>
+              {g.rsvp === 'pending' && <span className="pill pill-pending">Pending</span>}
               {g.mobility && <span className="tag tag-mob" title="Accessibility need (from RSVP)">♿</span>}
               <span className={`pill pill-${g.meal.toLowerCase().replace(/\s/g,'')}`}>{g.meal}</span>
             </div>
@@ -472,10 +474,12 @@ function TableCard({ table, guestIds, conflicts, onDragStart, onDrop }) {
           const g = guest(id);
           if (!g) return null;
           const flagged = conflicts.some(c => c.guests.includes(id));
+          const pending = g.rsvp === 'pending';
           return (
-            <div key={id} className={`seat${flagged ? ' seat-flagged' : ''}`}
-              draggable onDragStart={() => onDragStart(id, table.id)}>
-              <div className="seat-av">{g.name[0]}</div>
+            <div key={id} className={`seat${flagged ? ' seat-flagged' : ''}${pending ? ' seat-pending' : ''}`}
+              draggable onDragStart={() => onDragStart(id, table.id)}
+              title={pending ? `${g.name} — RSVP pending` : g.name}>
+              <div className="seat-av">{g.name[0]}{pending && <span className="pending-dot">·</span>}</div>
               <div className="seat-nm">{g.name.split(' ')[0]}</div>
               <div className={`seat-meal pill-${g.meal.toLowerCase().replace(/\s/g,'')}`} />
             </div>
@@ -513,6 +517,10 @@ function SeatingCanvas({ onApprove, onBack }) {
   const [dragging, setDragging] = useState(null);
   const [tab, setTab] = useState('conflicts');
   const [dismissed, setDismissed] = useState([]);
+  const [includePending, setIncludePending] = useState(true);
+
+  const isPending = (id) => GUESTS.find(g => g.id === id)?.rsvp === 'pending';
+  const pendingCount = Object.values(assignment).flat().filter(isPending).length;
 
   const handleDragStart = (guestId, fromTable) => setDragging({ guestId, fromTable });
   const handleDrop = (toTable) => {
@@ -538,19 +546,29 @@ function SeatingCanvas({ onApprove, onBack }) {
             <h2>Seating Draft</h2>
             <p className="sub-text">Drag guests between tables to resolve conflicts. Publish when ready.</p>
           </div>
-          <div style={{display:'flex',gap:8}}>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <label className="pending-toggle" title="Pending guests hold provisional seats — constraints still apply. Uncheck to view confirmed-only layout.">
+              <input type="checkbox" checked={includePending} onChange={e => setIncludePending(e.target.checked)} />
+              Show pending guests
+            </label>
             <button className="btn-outline" onClick={onBack}>← Back</button>
             <button className="btn-outline">↺ Regenerate</button>
             <button className="btn-primary" onClick={onApprove}>✦ Publish to Seating Chart →</button>
           </div>
         </div>
 
+        {pendingCount > 0 && (
+          <div className="pending-banner">
+            ⏳ <strong>{pendingCount} pending guests</strong> hold provisional seats — constraints still apply. Finalise the layout after RSVPs close.
+          </div>
+        )}
+
         <div className="tables-grid">
           {TABLES.map(t => (
             <TableCard
               key={t.id}
               table={t}
-              guestIds={assignment[t.id] || []}
+              guestIds={(assignment[t.id] || []).filter(id => includePending || !isPending(id))}
               conflicts={active}
               onDragStart={handleDragStart}
               onDrop={handleDrop}

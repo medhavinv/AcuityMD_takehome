@@ -125,6 +125,7 @@
 .pill-standard { background:#E8F0FE; color:#3366CC; }
 .pill-vegetarian { background:#E6F4EA; color:#2D7D46; }
 .pill-kids { background:var(--amber-lt); color:var(--amber); }
+.pill-pending { background:#F3F4F6; color:#6B7280; border:1px dashed #9CA3AF; }
 .tag { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; }
 .tag-bar { background:#EDE9FE; color:#6B21A8; }
 .tag-spk { background:#FEE2E2; color:#B91C1C; }
@@ -336,11 +337,28 @@
 .seat:hover { background:var(--sage-light); border-color:var(--sage-mid); }
 .seat.seat-flagged { background:var(--red-lt); border-color:#fca5a5; }
 .seat.seat-empty { cursor:default; opacity:.5; }
+.seat.seat-pending { opacity:.65; border-style:dashed; border-color:#9CA3AF; }
+.seat.seat-pending .seat-av { background:#F3F4F6; color:#6B7280; }
 .seat-av {
-  width:28px; height:28px; border-radius:50%; background:var(--sage-light); color:var(--sage);
+  position:relative; width:28px; height:28px; border-radius:50%;
+  background:var(--sage-light); color:var(--sage);
   font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
 }
 .seat-av.empty { background:var(--gray-lt); }
+.pending-dot {
+  position:absolute; bottom:-1px; right:-1px; width:8px; height:8px;
+  border-radius:50%; background:#F59E0B; border:1.5px solid var(--white);
+  font-size:0; display:block;
+}
+.pending-banner {
+  background:#FFFBEB; border:1px solid #FDE68A; border-radius:8px;
+  padding:9px 14px; font-size:13px; color:#92400E; margin-bottom:14px; line-height:1.4;
+}
+.pending-toggle {
+  display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+  color:var(--gray-dk); cursor:pointer; white-space:nowrap;
+}
+.pending-toggle input { accent-color:var(--sage); cursor:pointer; }
 .seat-nm { font-size:10px; color:var(--charcoal); font-weight:500; white-space:nowrap; overflow:hidden; max-width:52px; text-align:center; text-overflow:ellipsis; }
 .seat-nm.muted { color:var(--gray-lt); }
 .seat-meal { width:8px; height:8px; border-radius:50%; flex-shrink:0; }

@@ -5,43 +5,43 @@ export const WEDDING = {
 };
 
 export const GUESTS = [
-  // Couple's immediate family
-  { id: 1, name: "Margaret Chen", relation: "Bride's Mother", meal: "Standard", mobility: false, table: null },
-  { id: 2, name: "David Chen", relation: "Bride's Father (divorced)", meal: "Standard", mobility: false, table: null },
-  { id: 3, name: "Patricia Walsh", relation: "Groom's Mother", meal: "Vegetarian", mobility: false, table: null },
-  { id: 4, name: "Robert Walsh", relation: "Groom's Father", meal: "Standard", mobility: false, table: null },
-  { id: 5, name: "Sophie Chen", relation: "Bride's Sister (MOH)", meal: "Standard", mobility: false, table: null },
-  { id: 6, name: "Liam Walsh", relation: "Groom's Brother (Best Man)", meal: "Standard", mobility: false, table: null },
+  // Couple's immediate family — all confirmed
+  { id: 1,  name: "Margaret Chen",   relation: "Bride's Mother",              meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 2,  name: "David Chen",      relation: "Bride's Father (divorced)",   meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 3,  name: "Patricia Walsh",  relation: "Groom's Mother",              meal: "Vegetarian",  mobility: false, rsvp: "confirmed", table: null },
+  { id: 4,  name: "Robert Walsh",    relation: "Groom's Father",              meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 5,  name: "Sophie Chen",     relation: "Bride's Sister (MOH)",        meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 6,  name: "Liam Walsh",      relation: "Groom's Brother (Best Man)",  meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
-  // Grandparents / elderly
-  { id: 7, name: "Rose Chen", relation: "Bride's Grandmother", meal: "Standard", mobility: true, table: null },
-  { id: 8, name: "Frank Walsh", relation: "Groom's Grandfather", meal: "Standard", mobility: true, table: null },
+  // Grandparents / elderly — confirmed
+  { id: 7,  name: "Rose Chen",       relation: "Bride's Grandmother",         meal: "Standard",    mobility: true,  rsvp: "confirmed", table: null },
+  { id: 8,  name: "Frank Walsh",     relation: "Groom's Grandfather",         meal: "Standard",    mobility: true,  rsvp: "confirmed", table: null },
 
-  // Divorced / conflict
-  { id: 9, name: "Uncle Rob Chen", relation: "Bride's Uncle", meal: "Standard", mobility: false, table: null },
-  { id: 10, name: "Aunt Lisa Chen", relation: "Bride's Aunt (Rob's ex)", meal: "Standard", mobility: false, table: null },
+  // Divorced / conflict — confirmed
+  { id: 9,  name: "Uncle Rob Chen",  relation: "Bride's Uncle",               meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 10, name: "Aunt Lisa Chen",  relation: "Bride's Aunt (Rob's ex)",     meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
-  // College friends
-  { id: 11, name: "Sarah Kim", relation: "College Friend (Bride)", meal: "Vegetarian", mobility: false, table: null },
-  { id: 12, name: "Mike Torres", relation: "College Friend (Bride)", meal: "Standard", mobility: false, table: null },
-  { id: 13, name: "Jake Patel", relation: "College Friend (Bride)", meal: "Standard", mobility: false, table: null },
-  { id: 14, name: "Chloe Adams", relation: "College Friend (Bride)", meal: "Standard", mobility: false, table: null },
+  // College friends — mixed
+  { id: 11, name: "Sarah Kim",       relation: "College Friend (Bride)",      meal: "Vegetarian",  mobility: false, rsvp: "confirmed", table: null },
+  { id: 12, name: "Mike Torres",     relation: "College Friend (Bride)",      meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 13, name: "Jake Patel",      relation: "College Friend (Bride)",      meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
+  { id: 14, name: "Chloe Adams",     relation: "College Friend (Bride)",      meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
-  // Work colleagues
-  { id: 15, name: "Rachel Green", relation: "Colleague (Groom)", meal: "Standard", mobility: false, table: null },
-  { id: 16, name: "Tom Baker", relation: "Colleague (Groom)", meal: "Vegetarian", mobility: false, table: null },
-  { id: 17, name: "Nina Patel", relation: "Colleague (Groom)", meal: "Standard", mobility: false, table: null },
+  // Work colleagues — mixed
+  { id: 15, name: "Rachel Green",    relation: "Colleague (Groom)",           meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 16, name: "Tom Baker",       relation: "Colleague (Groom)",           meal: "Vegetarian",  mobility: false, rsvp: "pending",   table: null },
+  { id: 17, name: "Nina Patel",      relation: "Colleague (Groom)",           meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
-  // Kids
-  { id: 18, name: "Oliver Chen", relation: "Bride's Nephew (age 7)", meal: "Kids", mobility: false, table: null },
-  { id: 19, name: "Lily Walsh", relation: "Groom's Niece (age 5)", meal: "Kids", mobility: false, table: null },
-  { id: 20, name: "Noah Green", relation: "Guest Child (age 9)", meal: "Kids", mobility: false, table: null },
+  // Kids — confirmed
+  { id: 18, name: "Oliver Chen",     relation: "Bride's Nephew (age 7)",      meal: "Kids",        mobility: false, rsvp: "confirmed", table: null },
+  { id: 19, name: "Lily Walsh",      relation: "Groom's Niece (age 5)",       meal: "Kids",        mobility: false, rsvp: "confirmed", table: null },
+  { id: 20, name: "Noah Green",      relation: "Guest Child (age 9)",         meal: "Kids",        mobility: false, rsvp: "pending",   table: null },
 
-  // Other guests
-  { id: 21, name: "Carlos Rivera", relation: "Childhood Friend (Groom)", meal: "Standard", mobility: false, table: null },
-  { id: 22, name: "Amanda Lee", relation: "Childhood Friend (Groom)", meal: "Standard", mobility: false, table: null },
-  { id: 23, name: "Grace Park", relation: "Family Friend", meal: "Standard", mobility: false, table: null },
-  { id: 24, name: "Henry Walsh", relation: "Groom's Cousin", meal: "Standard", mobility: false, table: null },
+  // Other guests — some pending
+  { id: 21, name: "Carlos Rivera",   relation: "Childhood Friend (Groom)",    meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 22, name: "Amanda Lee",      relation: "Childhood Friend (Groom)",    meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
+  { id: 23, name: "Grace Park",      relation: "Family Friend",               meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
+  { id: 24, name: "Henry Walsh",     relation: "Groom's Cousin",              meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
 ];
 
 export const TABLES = [

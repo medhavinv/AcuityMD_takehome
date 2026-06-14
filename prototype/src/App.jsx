@@ -772,9 +772,9 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
     1: [1, 3, 4, 5, 6, 7],
     2: [8, 23, 24, 22, 21],
     3: [2, 10, 15, 17, 9],
-    4: [11, 12, 13, 14, 18, 19, 20],
+    4: [11, 12, 13, 14],
     5: [16],
-    6: [],
+    6: [18, 19, 20],
   });
   const conflicts = useMemo(
     () => detectConflicts(appliedRules, assignment, TABLES),

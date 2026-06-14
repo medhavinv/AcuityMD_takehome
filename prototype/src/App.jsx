@@ -51,18 +51,36 @@ const NAME_STOPWORDS = new Set([
 ]);
 
 const parseGuestNames = (text) => {
-  const tokens = [...new Set(
-    text.toLowerCase().split(/[^a-z']+/).filter(t => t.length > 2 && !NAME_STOPWORDS.has(t))
-  )];
+  const words = text.toLowerCase().split(/[^a-z']+/).filter(Boolean);
   const confident = new Set();
+  const consumed = new Array(words.length).fill(false);
+
+  // First pass: adjacent "First Last" pairs that uniquely identify one guest.
+  // Consume both words so a shared surname (e.g. "Chen" in "Lisa Chen") isn't
+  // then re-evaluated as a standalone ambiguous token.
+  for (let i = 0; i < words.length - 1; i++) {
+    const pair = `${words[i]} ${words[i + 1]}`;
+    const matches = GUESTS.filter(g => g.name.toLowerCase() === pair);
+    if (matches.length === 1) {
+      confident.add(matches[0].id);
+      consumed[i] = consumed[i + 1] = true;
+    }
+  }
+
+  // Second pass: single tokens not already consumed by a full-name match.
   const rawAmbiguous = [];
-  for (const tok of tokens) {
+  const seen = new Set();
+  for (let i = 0; i < words.length; i++) {
+    const tok = words[i];
+    if (consumed[i] || tok.length <= 2 || NAME_STOPWORDS.has(tok) || seen.has(tok)) continue;
+    seen.add(tok);
     const candidates = GUESTS
       .filter(g => g.name.toLowerCase().split(/\s+/).includes(tok))
       .map(g => g.id);
     if (candidates.length === 1) confident.add(candidates[0]);
     else if (candidates.length > 1) rawAmbiguous.push({ token: tok, candidates });
   }
+
   // Drop candidates already pinned by a confident token
   // (e.g. "Jake Patel": Jake → confident, so Patel's group collapses to Jake).
   const ambiguous = rawAmbiguous

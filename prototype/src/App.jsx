@@ -89,6 +89,25 @@ const parseGuestNames = (text) => {
   return { confident: [...confident], ambiguous };
 };
 
+// Infer the rule type (and zone) from the phrasing so a clearly-worded note
+// lands as a ready rule instead of forcing the planner to pick the type by hand.
+// Order matters: "Don't seat X and Y together" reads as keep-apart, not
+// seat-together, so the apart check must win over the together check.
+const inferRule = (text) => {
+  const t = text.toLowerCase();
+  const zone =
+    /\bbar\b/.test(t) ? 'Away from bar'
+    : /\bspeakers?\b|\bdj\b|\bmusic\b|\bband\b/.test(t) ? 'Away from speakers'
+    : /\bservice\b|\bkitchen\b/.test(t) ? 'Away from service'
+    : null;
+  if (/\baway from\b|\bnot near\b/.test(t) && zone) return { type: 'ZONE_AVOID', zone };
+  if (/\bapart\b|\bseparate\b|\bdon'?t (seat|sit|put)\b|\bnot (at )?the same\b|\bdifferent tables?\b|\bnot together\b/.test(t))
+    return { type: 'KEEP_APART' };
+  if (/\btogether\b|\bsame table\b|\bnext to\b|\bseat .* and\b|\bsit .* and\b|\bwith\b/.test(t))
+    return { type: 'SEAT_TOGETHER' };
+  return { type: 'ERROR' };
+};
+
 // Read-only rule row — used in canvas sidebar recap
 function RuleRow({ rule }) {
   const meta = RULE_LABELS[rule.type] || RULE_LABELS.CUSTOM;
@@ -441,11 +460,14 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
   const addCustom = () => {
     const text = custom.trim();
     if (!text) return;
-    // Always add — start in ERROR state so the planner must pick a rule type.
+    // Infer the rule type from the phrasing ("…together" → seat together,
+    // "don't seat…" → keep apart, "away from the bar" → keep away). When the
+    // wording is unclear we fall back to ERROR so the planner picks the type.
     // Confident name matches are pre-filled; ambiguous ones are surfaced for
     // the planner to confirm rather than silently guessing.
     const { confident, ambiguous } = parseGuestNames(text);
-    const rule = { type: 'ERROR', guests: confident, ambiguous };
+    const inferred = inferRule(text);
+    const rule = { ...inferred, guests: confident, ambiguous };
     setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
   };

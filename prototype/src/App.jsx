@@ -505,7 +505,7 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
           <div style={{display:'flex',gap:8}}>
             <textarea
               className="constraint-input"
-              placeholder="e.g. Seat Grace and Henry together — they only know each other"
+              placeholder="e.g. Seat Rachel and Henry together — they only know each other"
               value={custom}
               onChange={e => setCustom(e.target.value)}
               rows={3}

@@ -249,7 +249,6 @@ function ProductSidebar({ onNavigate }) {
                   <span className="side-label">{f.label}</span>
                   <span className="side-sub">{f.sub}</span>
                 </div>
-                {f.source && <span className="side-source">source</span>}
               </>
             )}
           </div>

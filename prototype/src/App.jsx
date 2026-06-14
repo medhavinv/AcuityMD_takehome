@@ -415,11 +415,8 @@ function Dashboard({ onStart }) {
 }
 
 // ─── Constraint Capture ───────────────────────────────────────────────────────
-function ConstraintCapture({ onGenerate, onBack }) {
-  const [added, setAdded] = useState([]);
-  const [editedRules, setEditedRules] = useState({});  // overrides for hardcoded constraint rules
+function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, customList, setCustomList, onGenerate, onBack }) {
   const [custom, setCustom] = useState('');
-  const [customList, setCustomList] = useState([]);
 
   const toggle = (id) => setAdded(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const getRule = (c) => editedRules[c.id] || c.rule;
@@ -946,6 +943,9 @@ export default function App() {
   const [screen, setScreen] = useState('dashboard');
   const [publishStats, setPublishStats] = useState({ guestsSeated: 0, openConflicts: 0 });
   const [appliedRules, setAppliedRules] = useState([]);
+  const [added, setAdded] = useState([]);
+  const [editedRules, setEditedRules] = useState({});
+  const [customList, setCustomList] = useState([]);
   const go = (s) => setScreen(s);
   return (
     <div className="app">
@@ -960,7 +960,7 @@ export default function App() {
             </div>
           )}
           {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
-          {screen === 'constraints' && <ConstraintCapture onGenerate={(rules) => { setAppliedRules(rules); go('generating'); }} onBack={() => go('dashboard')} />}
+          {screen === 'constraints' && <ConstraintCapture added={added} setAdded={setAdded} editedRules={editedRules} setEditedRules={setEditedRules} customList={customList} setCustomList={setCustomList} onGenerate={(rules) => { setAppliedRules(rules); go('generating'); }} onBack={() => go('dashboard')} />}
           {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
           {screen === 'canvas'      && <SeatingCanvas appliedRules={appliedRules} onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
           {screen === 'approved'    && <Approved onBack={() => go('canvas')} guestsSeated={publishStats.guestsSeated} openConflicts={publishStats.openConflicts} />}

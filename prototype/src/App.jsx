@@ -416,6 +416,7 @@ function Dashboard({ onStart }) {
 // ─── Constraint Capture ───────────────────────────────────────────────────────
 function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, customList, setCustomList, onGenerate, onBack }) {
   const [custom, setCustom] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const toggle = (id) => setAdded(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const getRule = (c) => editedRules[c.id] || c.rule;
@@ -459,6 +460,14 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
 
   return (
     <div className="screen">
+      <div className="constraints-hd">
+        <div>
+          <h2>Add Constraints</h2>
+          <p className="sub-text">Click to add, or type your own. Each constraint resolves to a rule bound to specific guests by name.</p>
+        </div>
+        <button className="btn-outline" onClick={onBack}>← Back</button>
+      </div>
+
       <div className="two-col">
       {/* Left: guest list */}
       <div className="col-left">
@@ -485,14 +494,6 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
 
       {/* Right: constraint input */}
       <div className="col-right">
-        <div className="constraints-hd">
-          <div>
-            <h2>Add Constraints</h2>
-            <p className="sub-text">Click to add, or type your own. Each constraint resolves to a rule bound to specific guests by name.</p>
-          </div>
-          <button className="btn-outline" onClick={onBack}>← Back</button>
-        </div>
-
         <div className="custom-block">
           <div className="suggestions-label">
             Constraint
@@ -514,8 +515,17 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
           <div className="custom-hint">Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.</div>
 
           <div className="suggestions-divider" />
-          <div className="suggestions-label suggestions-sub">Quick add — common constraints</div>
-          {HARDCODED_CONSTRAINTS.map(c => (
+          <button
+            type="button"
+            className="suggestions-toggle"
+            onClick={() => setShowSuggestions(s => !s)}
+            aria-expanded={showSuggestions}
+          >
+            <span className={`suggestions-chevron${showSuggestions ? ' open' : ''}`}>▸</span>
+            Suggestions
+            <span className="suggestions-count">{HARDCODED_CONSTRAINTS.length}</span>
+          </button>
+          {showSuggestions && HARDCODED_CONSTRAINTS.map(c => (
             <button key={c.id} className={`chip${added.includes(c.id) ? ' chip-on' : ''}`} onClick={() => toggle(c.id)}>
               <span className="chip-icon">{c.icon}</span>
               <span className="chip-text">{c.text}</span>

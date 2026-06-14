@@ -778,7 +778,6 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
     [appliedRules, assignment],
   );
   const [dragging, setDragging] = useState(null);
-  const [dismissed, setDismissed] = useState([]);
   const [includePending, setIncludePending] = useState(true);
 
   const isPending = (id) => GUESTS.find(g => g.id === id)?.rsvp === 'pending';
@@ -797,8 +796,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
     setDragging(null);
   };
 
-  const active = conflicts.filter(c => !dismissed.includes(c.id));
-  const dismiss = (id) => setDismissed(d => [...d, id]);
+  const active = conflicts;
 
   return (
     <div className="screen canvas-screen">
@@ -876,9 +874,6 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
                   <p className="conflict-msg">{c.message}</p>
                   <div className="conflict-guests">
                     {c.guests.map(id => <span key={id} className="guest-tag">{guest(id)?.name.split(' ')[0]}</span>)}
-                  </div>
-                  <div style={{display:'flex',gap:8,marginTop:10}}>
-                    <button className="btn-sm btn-ghost" onClick={() => dismiss(c.id)}>Dismiss</button>
                   </div>
                 </div>
               ))}

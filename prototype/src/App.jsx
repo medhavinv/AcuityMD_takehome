@@ -925,11 +925,6 @@ function Approved({ onBack, guestsSeated, openConflicts }) {
         <div className="approved-check">✓</div>
         <h2>Published to Seating Chart</h2>
         <p className="sub-text">The arrangement is now live in your Seating Charts tab. Share with the couple or export when ready.</p>
-        <div className="approved-actions">
-          <button className="btn-primary btn-lg">Share with Couple</button>
-          <button className="btn-outline">Export PDF</button>
-          <button className="btn-outline">Print Chart</button>
-        </div>
         <div className="approved-stats">
           {[[String(guestsSeated),'guests seated'],[String(TABLES.length),'tables arranged'],[String(openConflicts),'conflicts open']].map(([v,l]) => (
             <div key={l} className="apstat"><strong>{v}</strong><span>{l}</span></div>

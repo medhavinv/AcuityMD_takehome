@@ -333,11 +333,13 @@
 .constraints-hd { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .sub-text { font-size:13px; color:var(--gray-md); margin-top:4px; }
 
-.suggestions-block, .custom-block, .added-block, .generate-footer {
+.custom-block, .added-block, .generate-footer {
   background:var(--white); border:1px solid var(--gray-lt); border-radius:var(--r);
   padding:20px; box-shadow:var(--sh);
 }
 .suggestions-label { font-size:11px; font-weight:700; color:var(--gray-md); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; display:flex; align-items:center; gap:5px; }
+.suggestions-divider { height:1px; background:var(--gray-lt); margin:18px 0 14px; }
+.suggestions-sub { color:var(--gray-md); opacity:.85; }
 .ai-spark { color:var(--sage); font-size:13px; }
 .ai-label { font-size:10px; font-weight:600; color:var(--sage); background:var(--sage-light); border-radius:4px; padding:1px 6px; text-transform:none; letter-spacing:0; }
 .custom-hint { font-size:11px; color:var(--gray-md); line-height:1.45; margin-top:8px; }

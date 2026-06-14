@@ -493,20 +493,9 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
           <button className="btn-outline" onClick={onBack}>← Back</button>
         </div>
 
-        <div className="suggestions-block">
-          <div className="suggestions-label">Suggested — click to add</div>
-          {HARDCODED_CONSTRAINTS.map(c => (
-            <button key={c.id} className={`chip${added.includes(c.id) ? ' chip-on' : ''}`} onClick={() => toggle(c.id)}>
-              <span className="chip-icon">{c.icon}</span>
-              <span className="chip-text">{c.text}</span>
-              <span className="chip-toggle">{added.includes(c.id) ? '✓' : '+'}</span>
-            </button>
-          ))}
-        </div>
-
         <div className="custom-block">
           <div className="suggestions-label">
-            <span className="ai-spark">✦</span> Custom constraint
+            Constraint
             <Tooltip text="Supported rules: Keep apart (two guests, different tables) · Seat together (group, same table) · Keep away (guests away from speakers, bar, or service). Guest names are matched to your list.">
               <span className="info-icon-sm">ℹ</span>
             </Tooltip>
@@ -523,6 +512,16 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
             <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
           </div>
           <div className="custom-hint">Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.</div>
+
+          <div className="suggestions-divider" />
+          <div className="suggestions-label suggestions-sub">Quick add — common constraints</div>
+          {HARDCODED_CONSTRAINTS.map(c => (
+            <button key={c.id} className={`chip${added.includes(c.id) ? ' chip-on' : ''}`} onClick={() => toggle(c.id)}>
+              <span className="chip-icon">{c.icon}</span>
+              <span className="chip-text">{c.text}</span>
+              <span className="chip-toggle">{added.includes(c.id) ? '✓' : '+'}</span>
+            </button>
+          ))}
         </div>
 
         {totalCount > 0 && (

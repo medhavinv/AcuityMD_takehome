@@ -33,9 +33,9 @@ export const GUESTS = [
   { id: 17, name: "Nina Patel",      relation: "Colleague (Groom)",           meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
 
   // Kids — confirmed
-  { id: 18, name: "Oliver Chen",     relation: "Bride's Nephew (age 7)",      meal: "Kids",        mobility: false, rsvp: "confirmed", table: null },
-  { id: 19, name: "Lily Walsh",      relation: "Groom's Niece (age 5)",       meal: "Kids",        mobility: false, rsvp: "confirmed", table: null },
-  { id: 20, name: "Noah Green",      relation: "Guest Child (age 9)",         meal: "Kids",        mobility: false, rsvp: "pending",   table: null },
+  { id: 18, name: "Oliver Chen",     relation: "Bride's Nephew",              meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 19, name: "Lily Walsh",      relation: "Groom's Niece",               meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
+  { id: 20, name: "Noah Green",      relation: "Guest (age 9)",               meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
 
   // Other guests — some pending
   { id: 21, name: "Carlos Rivera",   relation: "Childhood Friend (Groom)",    meal: "Standard",    mobility: false, rsvp: "confirmed", table: null },
@@ -91,16 +91,16 @@ export const HARDCODED_CONSTRAINTS = [
   },
   {
     id: "c5",
-    text: "Seat Oliver, Lily & Noah together — they're the youngest guests",
+    text: "Seat Oliver, Lily & Noah together — they know each other and will be more comfortable at the same table",
     category: "preference",
-    icon: "🧒",
+    icon: "🙂",
     rule: { type: "SEAT_TOGETHER", guests: [18, 19, 20] },
   },
   {
     id: "c6",
-    text: "Keep Oliver, Lily & Noah away from the bar — too close to the noise and the alcohol",
-    category: "accessibility",
-    icon: "🚸",
+    text: "Keep Oliver, Lily & Noah away from the bar — they shouldn't be near it",
+    category: "preference",
+    icon: "🚫",
     rule: { type: "ZONE_AVOID", guests: [18, 19, 20], zone: "Away from bar" },
   },
 ];

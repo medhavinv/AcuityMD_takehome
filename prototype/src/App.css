@@ -154,7 +154,6 @@
 .pill { font-size:10px; font-weight:600; padding:2px 6px; border-radius:20px; white-space:nowrap; }
 .pill-standard { background:#E8F0FE; color:#3366CC; }
 .pill-vegetarian { background:#E6F4EA; color:#2D7D46; }
-.pill-kids { background:var(--amber-lt); color:var(--amber); }
 .pill-pending   { background:#F3F4F6; color:#6B7280; border:1px dashed #9CA3AF; }
 .pill-confirmed { background:#DCFCE7; color:#15803D; }
 .tag { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; }
@@ -464,7 +463,6 @@
 .seat-meal { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .pill-standard.seat-meal,.seat-meal.pill-standard { background:#3366CC; }
 .seat-meal.pill-vegetarian { background:#2D7D46; }
-.seat-meal.pill-kids { background:var(--amber); }
 
 .tc-conflicts { margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-lt); display:flex; flex-direction:column; gap:4px; }
 .tc-conflict-line { font-size:11px; color:var(--amber); line-height:1.4; }
@@ -476,13 +474,7 @@
   box-shadow:var(--sh); position:sticky; top:72px;
   max-height:calc(100vh - 90px); display:flex; flex-direction:column; overflow:hidden;
 }
-.sidebar-tabs { display:flex; border-bottom:1px solid var(--gray-lt); }
-.stab {
-  flex:1; padding:12px; font-size:13px; font-weight:500; color:var(--gray-md);
-  background:none; border-bottom:2px solid transparent; transition:.15s;
-  display:flex; align-items:center; justify-content:center; gap:4px;
-}
-.stab.stab-on { color:var(--sage); border-bottom-color:var(--sage); }
+.sidebar-hd { padding:14px 16px 12px; font-size:13px; font-weight:600; color:var(--charcoal); border-bottom:1px solid var(--gray-lt); display:flex; align-items:center; gap:6px; }
 .sidebar-body { overflow-y:auto; flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; }
 
 .conflict-card {
@@ -503,9 +495,6 @@
 .recap-row { display:flex; gap:8px; font-size:12px; color:var(--gray-md); line-height:1.4; }
 .recap-text { flex:1; }
 
-.rationale-card { border-left:3px solid var(--sage-mid); padding:8px 12px; background:var(--sage-light); border-radius:0 6px 6px 0; }
-.rationale-table { font-size:12px; font-weight:700; color:var(--sage); margin-bottom:4px; }
-.rationale-note { font-size:12px; color:var(--charcoal); line-height:1.5; }
 
 .empty-state { display:flex; flex-direction:column; align-items:center; gap:6px; padding:32px 0; color:var(--gray-md); font-size:13px; }
 .empty-check { width:40px; height:40px; border-radius:50%; background:var(--sage-light); color:var(--sage); font-size:18px; display:flex; align-items:center; justify-content:center; }

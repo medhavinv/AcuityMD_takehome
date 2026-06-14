@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { WEDDING, GUESTS, TABLES, HARDCODED_CONSTRAINTS, RATIONALE } from './data';
+import { WEDDING, GUESTS, TABLES, HARDCODED_CONSTRAINTS } from './data';
 import './App.css';
 
 const guest = (id) => GUESTS.find(g => g.id === id);
@@ -595,7 +595,6 @@ function Generating({ onDone }) {
     'Parsing constraints…',
     'Running seating optimisation…',
     'Flagging conflicts…',
-    'Building rationale…',
     'Draft ready ✓',
   ];
   useEffect(() => {
@@ -782,7 +781,6 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
     [appliedRules, assignment],
   );
   const [dragging, setDragging] = useState(null);
-  const [tab, setTab] = useState('conflicts');
   const [dismissed, setDismissed] = useState([]);
   const [includePending, setIncludePending] = useState(true);
 
@@ -838,7 +836,6 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
             <span className="legend-group-label">Meal</span>
             <span className="legend-item"><span className="seat-meal pill-standard" /> Standard</span>
             <span className="legend-item"><span className="seat-meal pill-vegetarian" /> Vegetarian</span>
-            <span className="legend-item"><span className="seat-meal pill-kids" /> Kids</span>
           </span>
           <span className="legend-sep" />
           <span className="legend-group">
@@ -863,18 +860,13 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
       </div>
 
       <div className="canvas-sidebar">
-        <div className="sidebar-tabs">
-          {['conflicts', 'rationale'].map(t => (
-            <button key={t} className={`stab${tab === t ? ' stab-on' : ''}`} onClick={() => setTab(t)}>
-              {t === 'conflicts' ? <>Conflicts{active.length > 0 && <span className="badge-red">{active.length}</span>}</> : 'Rationale'}
-            </button>
-          ))}
+        <div className="sidebar-hd">
+          Conflicts{active.length > 0 && <span className="badge-red">{active.length}</span>}
         </div>
 
         <div className="sidebar-body">
-          {tab === 'conflicts' && (
-            <>
-              {active.length === 0 && (
+          <>
+            {active.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-check">✓</div>
                   <p>No unresolved conflicts</p>
@@ -918,17 +910,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
                   );
                 })}
               </div>
-            </>
-          )}
-          {tab === 'rationale' && RATIONALE.map(r => {
-            const t = TABLES.find(t => t.id === r.table);
-            return (
-              <div key={r.table} className="rationale-card">
-                <div className="rationale-table">{t?.name}</div>
-                <p className="rationale-note">{r.note}</p>
-              </div>
-            );
-          })}
+          </>
         </div>
       </div>
     </div>

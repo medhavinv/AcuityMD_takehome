@@ -185,13 +185,13 @@
   border:1.5px solid #fca5a5; border-radius:8px;
   padding:10px 12px 12px; margin-bottom:2px;
 }
-.added-item-error.added-item { border-bottom:none; padding-bottom:12px; }
+.added-item-error.added-item { border-bottom:1.5px solid #fca5a5; padding-bottom:12px; }
 .added-item-error .editable-rule-row { background:transparent; border:1px dashed #fca5a5; padding:6px 8px; }
 .rule-error-prompt { width:100%; font-size:11px; color:var(--red); margin-top:4px; line-height:1.4; }
 
 /* Ambiguity — needs planner confirmation, not an error */
 .added-item-warn { border:1.5px solid #fcd34d; border-radius:8px; padding:10px 12px 12px; margin-bottom:2px; }
-.added-item-warn.added-item { border-bottom:none; }
+.added-item-warn.added-item { border-bottom:1.5px solid #fcd34d; }
 .ambiguous-block {
   width:100%; margin-top:8px; background:var(--amber-lt);
   border:1px solid #fcd34d; border-radius:8px; padding:8px 10px;

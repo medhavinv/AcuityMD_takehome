@@ -349,7 +349,7 @@ function Dashboard({ onStart }) {
       </div>
 
       <div className="how-strip">
-        <span className="how-strip-title">✦ How AI seating works</span>
+        <span className="how-strip-title">✦ How seating works</span>
         <div className="how-strip-steps">
           <span className="how-strip-step"><b>1</b> Add the couple's constraints</span>
           <span className="how-arrow">→</span>

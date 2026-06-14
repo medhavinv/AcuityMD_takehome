@@ -406,7 +406,7 @@
 /* ── Canvas ── */
 .canvas-screen { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; padding:24px 32px; }
 .canvas-main { display:flex; flex-direction:column; gap:16px; }
-.canvas-hd { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.canvas-hd { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:nowrap; }
 .canvas-hd h2 { font-size:18px; font-weight:700; }
 .tables-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
 

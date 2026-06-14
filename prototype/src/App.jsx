@@ -510,7 +510,7 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
               onChange={e => setCustom(e.target.value)}
               rows={3}
             />
-            <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>Add</button>
+            <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>✦ Add</button>
           </div>
           <div className="custom-hint">Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.</div>
 
@@ -586,7 +586,7 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
           disabled={invalidCount > 0}
           title={invalidCount > 0 ? 'Resolve the flagged constraints to continue' : undefined}
           onClick={() => onGenerate(buildAppliedRules())}
-        >Generate Seating Draft →</button>
+        >✦ Generate Seating Draft →</button>
       </div>
     </div>
   );
@@ -812,8 +812,8 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
             <h2>Seating Draft</h2>
             <p className="sub-text">Drag guests between tables to resolve conflicts. Publish when ready.</p>
           </div>
-          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-            <label className="pending-toggle" title="Pending guests hold provisional seats — constraints still apply. Uncheck to view confirmed-only layout.">
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'nowrap',whiteSpace:'nowrap'}}>
+            <label className="pending-toggle" title="Pending guests hold provisional seats — constraints still apply. Uncheck to view confirmed-only layout." style={{whiteSpace:'nowrap'}}>
               <input type="checkbox" checked={includePending} onChange={e => setIncludePending(e.target.checked)} />
               Show pending guests
             </label>
@@ -821,7 +821,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
             <button className="btn-primary" onClick={() => {
               if (active.length > 0) { setShowPublishConfirm(true); return; }
               onApprove({ guestsSeated: Object.values(assignment).flat().length, openConflicts: 0 });
-            }}>✦ Publish to Seating Chart →</button>
+            }}>Publish to Seating Chart →</button>
           </div>
         </div>
 

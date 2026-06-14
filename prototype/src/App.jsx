@@ -385,7 +385,7 @@ function Dashboard({ onStart }) {
         <div className="panel">
           <div className="panel-hd">
             <div className="panel-hd-titled"><h3>Tables</h3><span className="panel-src">via Seating Charts</span></div>
-            <div className="panel-meta"><span className="badge">{TABLES.length} tables</span><span className="badge-muted">8 seats avg</span></div>
+            <div className="panel-meta"><span className="badge">{TABLES.length} tables</span></div>
           </div>
           <div className="list-scroll">
             {TABLES.map(t => (

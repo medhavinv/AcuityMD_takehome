@@ -42,6 +42,7 @@ export const GUESTS = [
   { id: 22, name: "Amanda Lee",      relation: "Childhood Friend (Groom)",    meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
   { id: 23, name: "Grace Park",      relation: "Family Friend",               meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
   { id: 24, name: "Henry Walsh",     relation: "Groom's Cousin",              meal: "Standard",    mobility: false, rsvp: "pending",   table: null },
+  { id: 25, name: "Grace Kim",       relation: "Colleague (Bride)",           meal: "Vegetarian",  mobility: false, rsvp: "confirmed", table: null },
 ];
 
 export const TABLES = [

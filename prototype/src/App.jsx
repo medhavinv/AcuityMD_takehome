@@ -775,7 +775,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
     2: [8, 23, 24, 22, 21],
     3: [2, 10, 15, 17, 9],
     4: [11, 12, 13, 14],
-    5: [16],
+    5: [16, 25],
     6: [18, 19, 20],
   });
   const conflicts = useMemo(

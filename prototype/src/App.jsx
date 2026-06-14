@@ -728,7 +728,6 @@ function detectConflicts(rules, assignment, tables) {
     if (bad.length === 0) return;
     out.push({
       id: `${rule.id}-zone`,
-      severity: 'medium',
       message: `${nameList(bad)} ${bad.length > 1 ? 'are' : 'is'} at ${tableById[tableOf[bad[0]]].name} — conflicts with “${rule.zone}”.`,
       guests: bad,
       table: tableOf[bad[0]],
@@ -746,7 +745,6 @@ function detectConflicts(rules, assignment, tables) {
         if (ids.length > 1) {
           out.push({
             id: `${rule.id}-${tid}`,
-            severity: 'high',
             message: `${nameList(ids)} are seated together at ${tableById[tid].name} — violates a keep-apart rule.`,
             guests: ids,
             table: Number(tid),
@@ -758,7 +756,6 @@ function detectConflicts(rules, assignment, tables) {
       if (used.length > 1) {
         out.push({
           id: `${rule.id}-split`,
-          severity: 'medium',
           message: `${nameList(seated)} should sit together but are split across ${used.length} tables.`,
           guests: seated,
           table: tableOf[seated[0]],
@@ -903,8 +900,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
                 </div>
               )}
               {active.map(c => (
-                <div key={c.id} className={`conflict-card sev-${c.severity}`}>
-                  <div className="conflict-sev">{c.severity === 'high' ? '⚠ High priority' : '⚡ Medium'}</div>
+                <div key={c.id} className="conflict-card">
                   <p className="conflict-msg">{c.message}</p>
                   <div className="conflict-guests">
                     {c.guests.map(id => <span key={id} className="guest-tag">{guest(id)?.name.split(' ')[0]}</span>)}

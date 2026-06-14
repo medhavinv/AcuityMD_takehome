@@ -476,8 +476,7 @@
 .seat-meal.pill-vegetarian { background:#2D7D46; }
 
 .tc-conflicts { margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-lt); display:flex; flex-direction:column; gap:4px; }
-.tc-conflict-line { font-size:11px; color:var(--amber); line-height:1.4; }
-.tc-conflict-line.sev-high { color:var(--red); }
+.tc-conflict-line { font-size:11px; color:var(--red); line-height:1.4; }
 
 /* ── Sidebar ── */
 .canvas-sidebar {
@@ -492,9 +491,6 @@
   border:1.5px solid var(--amber-lt); border-radius:8px; padding:12px;
   background:var(--amber-lt);
 }
-.conflict-card.sev-high { border-color:#fca5a5; background:var(--red-lt); }
-.conflict-sev { font-size:11px; font-weight:700; color:var(--amber); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
-.conflict-card.sev-high .conflict-sev { color:var(--red); }
 .conflict-msg { font-size:12px; color:var(--charcoal); line-height:1.5; }
 .conflict-guests { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
 .guest-tag { background:var(--white); border:1px solid var(--gray-lt); font-size:11px; padding:2px 7px; border-radius:20px; color:var(--charcoal); }

@@ -787,6 +787,7 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
   );
   const [dragging, setDragging] = useState(null);
   const [includePending, setIncludePending] = useState(true);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 
   const isPending = (id) => GUESTS.find(g => g.id === id)?.rsvp === 'pending';
   const pendingCount = Object.values(assignment).flat().filter(isPending).length;
@@ -819,10 +820,10 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
               <input type="checkbox" checked={includePending} onChange={e => setIncludePending(e.target.checked)} />
               Show pending guests
             </label>
-            <button className="btn-outline" onClick={onBack}>← Back</button>            <button className="btn-primary" onClick={() => {
-              const seated = Object.values(assignment).flat().length;
-              const open = active.length;
-              onApprove({ guestsSeated: seated, openConflicts: open });
+            <button className="btn-outline" onClick={onBack}>← Back</button>
+            <button className="btn-primary" onClick={() => {
+              if (active.length > 0) { setShowPublishConfirm(true); return; }
+              onApprove({ guestsSeated: Object.values(assignment).flat().length, openConflicts: 0 });
             }}>✦ Publish to Seating Chart →</button>
           </div>
         </div>
@@ -861,6 +862,31 @@ function SeatingCanvas({ appliedRules, onApprove, onBack }) {
           ))}
         </div>
       </div>
+
+      {showPublishConfirm && (
+        <div className="modal-overlay" onClick={() => setShowPublishConfirm(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-icon">⚠</div>
+            <h3 className="modal-title">Publish with open conflicts?</h3>
+            <p className="modal-body">
+              {active.length === 1
+                ? 'There is 1 unresolved conflict in this draft.'
+                : `There are ${active.length} unresolved conflicts in this draft.`}
+              {' '}Publishing now will save the arrangement as-is.
+            </p>
+            <ul className="modal-conflict-list">
+              {active.map(c => <li key={c.id}>{c.message}</li>)}
+            </ul>
+            <div className="modal-actions">
+              <button className="btn-outline" onClick={() => setShowPublishConfirm(false)}>Go back & resolve</button>
+              <button className="btn-danger" onClick={() => {
+                setShowPublishConfirm(false);
+                onApprove({ guestsSeated: Object.values(assignment).flat().length, openConflicts: active.length });
+              }}>Publish anyway</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="canvas-sidebar">
         <div className="sidebar-hd">

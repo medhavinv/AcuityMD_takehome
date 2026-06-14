@@ -662,7 +662,7 @@ function TableCard({ table, guestIds, conflicts, onDragStart, onDrop }) {
             <div key={id} className={`seat${flagged ? ' seat-flagged' : ''}${pending ? ' seat-pending' : ''}`}
               draggable onDragStart={() => onDragStart(id, table.id)}
               title={pending ? `${g.name} — RSVP pending` : g.name}>
-              <div className="seat-av">{g.name[0]}{pending && <span className="pending-dot">·</span>}</div>
+              <div className="seat-av">{g.name.split(' ').map(w => w[0]).join('')}{pending && <span className="pending-dot">·</span>}</div>
               <div className="seat-nm">{g.name.split(' ')[0]}</div>
               <div className={`seat-meal pill-${g.meal.toLowerCase().replace(/\s/g,'')}`} />
             </div>

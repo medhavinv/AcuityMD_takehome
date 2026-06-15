@@ -475,6 +475,12 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
     setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text, rule }]);
     setCustom('');
   };
+  // Build a rule by hand — skips the text box entirely. Lands in ERROR state
+  // (pick a type, add guests via the picker) for when NL parsing isn't wanted.
+  const addManual = () => {
+    const rule = { type: 'ERROR', guests: [], ambiguous: [] };
+    setCustomList(prev => [...prev, { id: `custom-${Date.now()}`, text: 'Manual rule', manual: true, rule }]);
+  };
   const removeCustom = (id) => setCustomList(prev => prev.filter(c => c.id !== id));
   const updateCustomRule = (id, rule) => setCustomList(prev => prev.map(c => c.id === id ? { ...c, rule } : c));
   const totalCount = added.length + customList.length;
@@ -556,7 +562,10 @@ function ConstraintCapture({ added, setAdded, editedRules, setEditedRules, custo
             />
             <button className="btn-outline" disabled={!custom.trim()} onClick={addCustom}>✦ Add</button>
           </div>
-          <div className="custom-hint">Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.</div>
+          <div className="custom-hint">
+            Names are matched to your guest list. Shared surnames (e.g. “Patel”) will ask you to confirm who you meant.
+            <button type="button" className="manual-link" onClick={addManual}>+ Build a rule manually</button>
+          </div>
 
           <div className="suggestions-divider" />
           <button
@@ -812,16 +821,99 @@ function detectConflicts(rules, assignment, tables) {
   return out;
 }
 
+// ─── Draft generation ─────────────────────────────────────────────────────────
+// Greedy seat assignment that honors every applied rule it can satisfy:
+//   • SEAT_TOGETHER → group members onto one table (union-find merges chains)
+//   • KEEP_APART    → flagged guests never share a table
+//   • ZONE_AVOID    → guests kept off tables with the avoided attribute
+//   • capacity      → never overfilled
+// A relationship-based seed gives the draft a believable, themed starting shape
+// (family / friends / colleagues / kids) when constraints leave room to choose.
+// On a satisfiable instance this returns a clean board; the live detector then
+// flags anything the planner introduces by dragging. Anything unsatisfiable
+// (contradictory rules, over-capacity) falls back to best-effort placement and
+// surfaces as a live conflict rather than throwing.
+// Candidate tables for a guest, by relationship. Family spans both family
+// tables so the draft fills them evenly instead of leaving one empty.
+const preferredTables = (g) => {
+  const r = (g.relation || '').toLowerCase();
+  if (/nephew|niece|age \d/.test(r)) return [6];                // kids
+  if (/colleague/.test(r)) return [5];                          // colleagues
+  if (/friend/.test(r)) return [4];                             // friends
+  if (/\bmother\b|\bfather\b|sister|brother|best man|maid|\bmoh\b/.test(r)) return [1]; // immediate family
+  return [2, 3];                                                // extended family / other
+};
+
+function generateSeating(rules) {
+  const capacity = Object.fromEntries(TABLES.map(t => [t.id, t.capacity]));
+  const seats = Object.fromEntries(TABLES.map(t => [t.id, []]));
+  const tableIds = TABLES.map(t => t.id);
+
+  // Tables each guest must avoid (from ZONE_AVOID).
+  const forbidden = {};
+  for (const r of rules.filter(r => r.type === 'ZONE_AVOID')) {
+    const spec = zoneSpec(r.zone);
+    if (!spec) continue;
+    for (const id of r.guests) {
+      (forbidden[id] ||= new Set());
+      for (const t of TABLES) if (Boolean(t[spec.attr]) !== spec.want) forbidden[id].add(t.id);
+    }
+  }
+
+  // Pairs that must not share a table (from KEEP_APART).
+  const apartOf = {};
+  for (const r of rules.filter(r => r.type === 'KEEP_APART')) {
+    for (const a of r.guests) for (const b of r.guests) {
+      if (a !== b) (apartOf[a] ||= new Set()).add(b);
+    }
+  }
+
+  // Merge SEAT_TOGETHER chains into atomic units via union-find.
+  const parent = {};
+  GUESTS.forEach(g => { parent[g.id] = g.id; });
+  const find = (x) => parent[x] === x ? x : (parent[x] = find(parent[x]));
+  const union = (a, b) => { parent[find(a)] = find(b); };
+  for (const r of rules.filter(r => r.type === 'SEAT_TOGETHER')) {
+    for (let i = 1; i < r.guests.length; i++) union(r.guests[0], r.guests[i]);
+  }
+  const groups = {};
+  for (const g of GUESTS) { (groups[find(g.id)] ||= []).push(g.id); }
+  // Largest units first (hardest to place), deterministic tie-break by lowest id.
+  const units = Object.values(groups).sort(
+    (a, b) => b.length - a.length || Math.min(...a) - Math.min(...b)
+  );
+
+  const canPlace = (ids, tid) => {
+    if (seats[tid].length + ids.length > capacity[tid]) return false;
+    for (const id of ids) {
+      if (forbidden[id]?.has(tid)) return false;
+      for (const other of seats[tid]) if (apartOf[id]?.has(other)) return false;
+    }
+    return true;
+  };
+  const place = (ids, tid) => { for (const id of ids) seats[tid].push(id); };
+
+  for (const unit of units) {
+    // Try the unit's preferred tables first, emptiest one first so themed
+    // tables fill evenly; then fall back to any remaining table.
+    const prefSet = new Set();
+    for (const id of unit) for (const p of preferredTables(GUESTS.find(g => g.id === id))) prefSet.add(p);
+    const prefs = [...prefSet].sort((a, b) => seats[a].length - seats[b].length || a - b);
+    const order = [...prefs, ...tableIds.filter(id => !prefSet.has(id))];
+
+    let placed = false;
+    for (const tid of order) if (canPlace(unit, tid)) { place(unit, tid); placed = true; break; }
+    // Fallback: capacity-only, then most-room — keeps the draft complete even
+    // when constraints can't all be met; the live detector flags the residue.
+    if (!placed) for (const tid of order) if (seats[tid].length + unit.length <= capacity[tid]) { place(unit, tid); placed = true; break; }
+    if (!placed) { const tid = [...tableIds].sort((a, b) => (capacity[b] - seats[b].length) - (capacity[a] - seats[a].length))[0]; place(unit, tid); }
+  }
+  return seats;
+}
+
 // ─── Canvas ───────────────────────────────────────────────────────────────────
-function SeatingCanvas({ appliedRules, onApprove, onBack }) {
-  const [assignment, setAssignment] = useState({
-    1: [1, 3, 4, 5, 6, 7],
-    2: [8, 23, 24, 22, 21],
-    3: [2, 10, 15, 17, 9],
-    4: [11, 12, 13, 14],
-    5: [16, 25],
-    6: [18, 19, 20],
-  });
+function SeatingCanvas({ appliedRules, initialAssignment, onApprove, onBack }) {
+  const [assignment, setAssignment] = useState(initialAssignment);
   const conflicts = useMemo(
     () => detectConflicts(appliedRules, assignment, TABLES),
     [appliedRules, assignment],
@@ -1007,6 +1099,7 @@ export default function App() {
   const [screen, setScreen] = useState('dashboard');
   const [publishStats, setPublishStats] = useState({ guestsSeated: 0, openConflicts: 0 });
   const [appliedRules, setAppliedRules] = useState([]);
+  const [seating, setSeating] = useState({});
   const [added, setAdded] = useState([]);
   const [editedRules, setEditedRules] = useState({});
   const [customList, setCustomList] = useState([]);
@@ -1024,9 +1117,9 @@ export default function App() {
             </div>
           )}
           {screen === 'dashboard'   && <Dashboard onStart={() => go('constraints')} />}
-          {screen === 'constraints' && <ConstraintCapture added={added} setAdded={setAdded} editedRules={editedRules} setEditedRules={setEditedRules} customList={customList} setCustomList={setCustomList} onGenerate={(rules) => { setAppliedRules(rules); go('generating'); }} onBack={() => go('dashboard')} />}
+          {screen === 'constraints' && <ConstraintCapture added={added} setAdded={setAdded} editedRules={editedRules} setEditedRules={setEditedRules} customList={customList} setCustomList={setCustomList} onGenerate={(rules) => { setAppliedRules(rules); setSeating(generateSeating(rules)); go('generating'); }} onBack={() => go('dashboard')} />}
           {screen === 'generating'  && <Generating onDone={() => go('canvas')} />}
-          {screen === 'canvas'      && <SeatingCanvas appliedRules={appliedRules} onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
+          {screen === 'canvas'      && <SeatingCanvas appliedRules={appliedRules} initialAssignment={seating} onApprove={(stats) => { setPublishStats(stats); go('approved'); }} onBack={() => go('constraints')} />}
           {screen === 'approved'    && <Approved onBack={() => go('canvas')} guestsSeated={publishStats.guestsSeated} openConflicts={publishStats.openConflicts} />}
         </main>
       </div>

@@ -352,6 +352,11 @@
 .ai-spark { color:var(--sage); font-size:13px; }
 .ai-label { font-size:10px; font-weight:600; color:var(--sage); background:var(--sage-light); border-radius:4px; padding:1px 6px; text-transform:none; letter-spacing:0; }
 .custom-hint { font-size:11px; color:var(--gray-md); line-height:1.45; margin-top:8px; }
+.manual-link {
+  display:inline; background:none; border:none; padding:0; margin-left:6px;
+  font-size:11px; font-weight:600; color:var(--sage); cursor:pointer; text-decoration:underline;
+}
+.manual-link:hover { color:var(--charcoal); }
 .chip {
   display:flex; align-items:flex-start; gap:10px; width:100%; text-align:left;
   background:var(--cream); border:1.5px solid var(--gray-lt); border-radius:8px;

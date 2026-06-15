@@ -40,7 +40,7 @@
 .sidebar-brand .brand-name { font-size:17px; font-weight:700; color:var(--charcoal); letter-spacing:-.3px; }
 .sidebar-toggle {
   background:none; border:1px solid var(--gray-lt); border-radius:6px; cursor:pointer;
-  color:var(--gray-md); font-size:13px; line-height:1; width:24px; height:24px;
+  color:var(--gray-md); line-height:1; width:30px; height:30px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .sidebar-toggle:hover { border-color:var(--sage); color:var(--sage); }
